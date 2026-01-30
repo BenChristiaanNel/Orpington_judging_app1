@@ -1,1 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orpington Judging</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>🐔 Orpington Judging</h1>
+
+  <div class="card">
+    <label>Bird ID</label>
+    <input type="text" id="birdId">
+
+    <label>Variety / Colour</label>
+    <input type="text" id="variety">
+
+    <label>Head & Comb</label>
+    <input type="range" min="0" max="20" id="head" value="0">
+
+    <label>Body & Type</label>
+    <input type="range" min="0" max="30" id="body" value="0">
+
+    <label>Legs & Feet</label>
+    <input type="range" min="0" max="15" id="legs" value="0">
+
+    <label>Plumage Colour</label>
+    <input type="range" min="0" max="25" id="colour" value="0">
+
+    <label>Condition</label>
+    <input type="range" min="0" max="10" id="condition" value="0">
+
+    <h2>Total: <span id="total">0</span></h2>
+
+    <button onclick="saveBird()">Save Bird</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
 
