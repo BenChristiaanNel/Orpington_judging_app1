@@ -44,13 +44,17 @@ function showResults() {
   }
 
   // Group birds by variety
-  const grouped = {};
-  birds.forEach(bird => {
-    if (!grouped[bird.variety]) {
-      grouped[bird.variety] = [];
-    }
-    grouped[bird.variety].push(bird);
-  });
+ grouped[variety].forEach((bird, index) => {
+  const winnerStyle = index === 0 ? "style='background:#ffd700;padding:8px;border-radius:5px;'" : "";
+
+  html += `
+    <p ${winnerStyle}>
+      ${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong>
+    </p>
+  `;
+});
+
+
 
   let html = "";
 
