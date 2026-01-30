@@ -75,3 +75,11 @@ function showResults() {
 
   resultsDiv.innerHTML = html;
 }
+
+function resetShow() {
+  if (confirm("Start a new show? This will delete all birds.")) {
+    localStorage.removeItem('birds');
+    document.getElementById('results').innerHTML = "";
+    alert("New show started.");
+  }
+}
