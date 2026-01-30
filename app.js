@@ -39,7 +39,7 @@ function saveBird() {
 
   alert("Bird saved!");
 }
-xxxxx
+
 function showResults() {
   const resultsDiv = document.getElementById('results');
   resultsDiv.style.display = "block";
@@ -69,19 +69,14 @@ function showResults() {
     html += `<h3>${variety} (Total entries: ${grouped[variety].length})</h3>`;
 
     grouped[variety].forEach((bird, index) => {
-      let highlight = "";
+  let highlight = "";
 
-      if (index === 0) highlight = "style='background:#ffd700;padding:8px;border-radius:5px;'"; // Gold
-      else if (index === 1) highlight = "style='background:#c0c0c0;padding:8px;border-radius:5px;'"; // Silver
-      else if (index === 2) highlight = "style='background:#cd7f32;padding:8px;border-radius:5px;'"; // Bronze
+  if (index === 0) highlight = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;"; // Gold
+  else if (index === 1) highlight = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;"; // Silver
+  else if (index === 2) highlight = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;"; // Bronze
 
-      html += `
-        <p ${highlight}>
-          ${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong>
-        </p>
-      `;
-    });
-  });
+  html += `<p style="${highlight}">${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong></p>`;
+});
 
   resultsDiv.innerHTML = html;
 }
