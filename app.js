@@ -8,21 +8,29 @@ sliders.forEach(slider => {
 function calculateTotal() {
   let total = 0;
   sliders.forEach(slider => {
-    total += parseInt(slider.value);
+    total += Number(slider.value);
   });
   totalDisplay.innerText = total;
 }
 
 function saveBird() {
+  const birdId = document.getElementById('birdId').value.trim();
+  const varietyInput = document.getElementById('variety').value.trim();
+
+  if (birdId === "" || varietyInput === "") {
+    alert("Please enter Bird ID and Variety");
+    return;
+  }
+
   const bird = {
-    id: document.getElementById('birdId').value,
-    variety: document.getElementById('variety').value,
-    head: document.getElementById('head').value,
-    body: document.getElementById('body').value,
-    legs: document.getElementById('legs').value,
-    colour: document.getElementById('colour').value,
-    condition: document.getElementById('condition').value,
-    total: totalDisplay.innerText
+    id: birdId,
+    variety: varietyInput.toUpperCase(),
+    head: Number(document.getElementById('head').value),
+    body: Number(document.getElementById('body').value),
+    legs: Number(document.getElementById('legs').value),
+    colour: Number(document.getElementById('colour').value),
+    condition: Number(document.getElementById('condition').value),
+    total: Number(totalDisplay.innerText)
   };
 
   let birds = JSON.parse(localStorage.getItem('birds')) || [];
@@ -34,7 +42,7 @@ function saveBird() {
 
 function showResults() {
   const resultsDiv = document.getElementById('results');
-  resultsDiv.style.display = 'block';
+  resultsDiv.style.display = "block";
 
   let birds = JSON.parse(localStorage.getItem('birds')) || [];
 
@@ -43,30 +51,29 @@ function showResults() {
     return;
   }
 
-  // Group birds by variety
- grouped[variety].forEach((bird, index) => {
-  const winnerStyle = index === 0 ? "style='background:#ffd700;padding:8px;border-radius:5px;'" : "";
+  const grouped = {};
 
-  html += `
-    <p ${winnerStyle}>
-      ${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong>
-    </p>
-  `;
-});
-
-
+  birds.forEach(bird => {
+    if (!grouped[bird.variety]) {
+      grouped[bird.variety] = [];
+    }
+    grouped[bird.variety].push(bird);
+  });
 
   let html = "";
 
   Object.keys(grouped).forEach(variety => {
-    // Sort by total score (descending)
     grouped[variety].sort((a, b) => b.total - a.total);
 
     html += `<h3>${variety}</h3>`;
 
     grouped[variety].forEach((bird, index) => {
+      const highlight = index === 0
+        ? "style='background:#ffd700;padding:8px;border-radius:5px;'"
+        : "";
+
       html += `
-        <p>
+        <p ${highlight}>
           ${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong>
         </p>
       `;
@@ -99,12 +106,12 @@ function exportCSV() {
   });
 
   const blob = new Blob([csv], { type: "text/csv" });
-  const url = window.URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
   a.href = url;
   a.download = "orpington_judging_results.csv";
   a.click();
 
-  window.URL.revokeObjectURL(url);
+  URL.revokeObjectURL(url);
 }
