@@ -53,24 +53,27 @@ function showResults() {
 
   const grouped = {};
 
+  // Group birds by variety
   birds.forEach(bird => {
-    if (!grouped[bird.variety]) {
-      grouped[bird.variety] = [];
-    }
+    if (!grouped[bird.variety]) grouped[bird.variety] = [];
     grouped[bird.variety].push(bird);
   });
 
   let html = "";
 
   Object.keys(grouped).forEach(variety => {
-    grouped[variety].sort((a, b) => b.total - a.total);
+    // Sort birds by total descending
+    grouped[variety].sort((a, b) => Number(b.total || 0) - Number(a.total || 0));
 
-    html += `<h3>${variety}</h3>`;
+    // Display variety and total entries
+    html += `<h3>${variety} (Total entries: ${grouped[variety].length})</h3>`;
 
     grouped[variety].forEach((bird, index) => {
-      const highlight = index === 0
-        ? "style='background:#ffd700;padding:8px;border-radius:5px;'"
-        : "";
+      let highlight = "";
+
+      if (index === 0) highlight = "style='background:#ffd700;padding:8px;border-radius:5px;'"; // Gold
+      else if (index === 1) highlight = "style='background:#c0c0c0;padding:8px;border-radius:5px;'"; // Silver
+      else if (index === 2) highlight = "style='background:#cd7f32;padding:8px;border-radius:5px;'"; // Bronze
 
       html += `
         <p ${highlight}>
@@ -82,6 +85,7 @@ function showResults() {
 
   resultsDiv.innerHTML = html;
 }
+
 
 function resetShow() {
   if (confirm("Start a new show? This will delete all birds.")) {
