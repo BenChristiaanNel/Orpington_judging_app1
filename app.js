@@ -31,3 +31,43 @@ function saveBird() {
 
   alert("Bird saved!");
 }
+
+function showResults() {
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.style.display = 'block';
+
+  let birds = JSON.parse(localStorage.getItem('birds')) || [];
+
+  if (birds.length === 0) {
+    resultsDiv.innerHTML = "<p>No birds saved yet.</p>";
+    return;
+  }
+
+  // Group birds by variety
+  const grouped = {};
+  birds.forEach(bird => {
+    if (!grouped[bird.variety]) {
+      grouped[bird.variety] = [];
+    }
+    grouped[bird.variety].push(bird);
+  });
+
+  let html = "";
+
+  Object.keys(grouped).forEach(variety => {
+    // Sort by total score (descending)
+    grouped[variety].sort((a, b) => b.total - a.total);
+
+    html += `<h3>${variety}</h3>`;
+
+    grouped[variety].forEach((bird, index) => {
+      html += `
+        <p>
+          ${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong>
+        </p>
+      `;
+    });
+  });
+
+  resultsDiv.innerHTML = html;
+}
