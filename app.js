@@ -83,3 +83,28 @@ function resetShow() {
     alert("New show started.");
   }
 }
+
+function exportCSV() {
+  let birds = JSON.parse(localStorage.getItem('birds')) || [];
+
+  if (birds.length === 0) {
+    alert("No data to export.");
+    return;
+  }
+
+  let csv = "Bird ID,Variety,Head,Body,Legs,Colour,Condition,Total\n";
+
+  birds.forEach(bird => {
+    csv += `${bird.id},${bird.variety},${bird.head},${bird.body},${bird.legs},${bird.colour},${bird.condition},${bird.total}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "orpington_judging_results.csv";
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
