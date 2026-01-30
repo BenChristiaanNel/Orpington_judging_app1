@@ -1,0 +1,37 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 15px;
+  background: #f4f4f4;
+}
+
+h1 {
+  text-align: center;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 8px;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 15px;
+  font-size: 18px;
+}
