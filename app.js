@@ -39,7 +39,7 @@ function saveBird() {
 
   alert("Bird saved!");
 }
-
+xxxxx
 function showResults() {
   const resultsDiv = document.getElementById('results');
   resultsDiv.style.display = "block";
@@ -62,8 +62,8 @@ function showResults() {
   let html = "";
 
   Object.keys(grouped).forEach(variety => {
-    // Sort birds by total descending
-    grouped[variety].sort((a, b) => Number(b.total || 0) - Number(a.total || 0));
+    // Sort birds numerically by total descending
+    grouped[variety].sort((a, b) => Number(b.total) - Number(a.total));
 
     // Display variety and total entries
     html += `<h3>${variety} (Total entries: ${grouped[variety].length})</h3>`;
@@ -85,6 +85,7 @@ function showResults() {
 
   resultsDiv.innerHTML = html;
 }
+
 
 
 function resetShow() {
