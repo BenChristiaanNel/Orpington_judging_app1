@@ -230,6 +230,53 @@
       Next
     </button>
   </div>
+  <!-- ✅ COLOUR SCREEN -->
+<div id="colourScreen"
+     style="
+       display:none;
+       text-align:center;
+       padding:40px 20px;
+       height:100vh;
+       background:#1e3a8a;
+       color:white;
+       align-items:center;
+       justify-content:center;
+       flex-direction:column;
+       overflow:hidden;
+     ">
+
+  <h1 style="font-size:34px; font-weight:800; margin-bottom:22px;">
+    Select Colour
+  </h1>
+
+  <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center; width:min(700px, 95%);">
+    <button onclick="selectColour('BLACK')" style="padding:18px 22px; font-size:20px; font-weight:800; border-radius:14px; background:#facc15; color:#1e3a8a; border:none; cursor:pointer;">Black</button>
+    <button onclick="selectColour('BLUE')" style="padding:18px 22px; font-size:20px; font-weight:800; border-radius:14px; background:#facc15; color:#1e3a8a; border:none; cursor:pointer;">Blue</button>
+    <button onclick="selectColour('BUFF')" style="padding:18px 22px; font-size:20px; font-weight:800; border-radius:14px; background:#facc15; color:#1e3a8a; border:none; cursor:pointer;">Buff</button>
+    <button onclick="selectColour('WHITE')" style="padding:18px 22px; font-size:20px; font-weight:800; border-radius:14px; background:#facc15; color:#1e3a8a; border:none; cursor:pointer;">White</button>
+  </div>
+
+  <p style="margin-top:18px; font-size:18px;">
+    Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
+  </p>
+
+  <button onclick="saveColourAndContinue()"
+          style="
+            padding:22px 36px;
+            font-size:22px;
+            font-weight:700;
+            border-radius:14px;
+            background:#ffffff;
+            color:#1e3a8a;
+            border:none;
+            cursor:pointer;
+            box-shadow:0 6px 15px rgba(0,0,0,0.25);
+            margin-top:14px;
+          ">
+    Start Judging
+  </button>
+
+</div>
 
 
   <!-- ✅ JUDGING SCREEN -->
