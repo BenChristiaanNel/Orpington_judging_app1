@@ -115,10 +115,30 @@
   </div>
 
   <!-- ✅ COLOUR SCREEN -->
-  <div id="colourScreen" class="screen-blue" style="display:none;">
-    <h1 style="font-size:34px; font-weight:800; margin-bottom:22px;">Select Colour</h1>
+  <!-- ✅ COLOUR SCREEN -->
+<div id="colourScreen" class="screen-blue" style="display:none;">
 
-    <div class="grid-wrap">
+  <h1 style="font-size:34px; font-weight:800; margin-bottom:14px;">
+    Select Colour
+  </h1>
+
+  <p style="margin-top:0; margin-bottom:14px; font-size:16px; opacity:0.9;">
+    Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
+  </p>
+
+  <!-- ✅ This box scrolls (not the whole page) -->
+  <div
+    style="
+      width:min(760px, 95%);
+      max-height:55vh;
+      overflow:auto;
+      padding:10px;
+      border-radius:14px;
+      background: rgba(255,255,255,0.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+    "
+  >
+    <div class="grid-wrap" style="width:100%;">
       <button class="pill" onclick="selectColour('BLACK')">Black</button>
       <button class="pill" onclick="selectColour('BLUE')">Blue</button>
       <button class="pill" onclick="selectColour('BUFF')">Buff</button>
@@ -137,13 +157,14 @@
       <button class="pill" onclick="selectColour('ISABEL')">Isabel</button>
       <button class="pill" onclick="selectColour('CRELE')">Crele</button>
     </div>
-
-    <p style="margin-top:18px; font-size:18px;">
-      Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
-    </p>
-
-    <button class="btn-white" onclick="saveColourAndContinue()">Start Judging</button>
   </div>
+
+  <button class="btn-white" onclick="saveColourAndContinue()" style="margin-top:18px;">
+    Start Judging
+  </button>
+
+</div>
+
 
   <!-- ✅ JUDGING SCREEN -->
   <div id="judgingScreen"
