@@ -135,73 +135,58 @@
     <button class="btn-white" onclick="saveClassAndContinue()">Next</button>
   </div>
 
-  <!-- ✅ COLOUR SCREEN -->
-<!-- ✅ COLOUR SCREEN (button always visible) -->
-<div id="colourScreen"
-     class="screen-blue"
-     style="display:none; justify-content:flex-start; padding-top:28px;">
+  <!-- ✅ COLOUR SCREEN (tap colour auto-continues) -->
+  <div id="colourScreen"
+       class="screen-blue"
+       style="display:none; justify-content:flex-start; padding-top:28px;">
 
-  <h1 style="font-size:34px; font-weight:800; margin:0 0 10px;">
-    Select Colour
-  </h1>
+    <h1 style="font-size:34px; font-weight:800; margin:0 0 10px;">Select Colour</h1>
 
-  <p style="margin:0 0 14px; font-size:16px; opacity:0.9;">
-    Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
-  </p>
+    <p style="margin:0 0 14px; font-size:16px; opacity:0.9;">
+      Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
+    </p>
 
-  <!-- ✅ Scroll area ONLY for the buttons -->
-  <div
-    style="
-      width:min(760px, 95%);
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-y;
-      padding:10px;
-      border-radius:14px;
-      background: rgba(255,255,255,0.08);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
-    "
-  >
-    <div class="grid-wrap" style="width:100%;">
-      <button class="pill" onclick="selectColour('BLACK')">Black</button>
-      <button class="pill" onclick="selectColour('BLUE')">Blue</button>
-      <button class="pill" onclick="selectColour('BUFF')">Buff</button>
-      <button class="pill" onclick="selectColour('WHITE')">White</button>
-      <button class="pill" onclick="selectColour('SPLASH')">Splash</button>
-      <button class="pill" onclick="selectColour('CHOCOLATE')">Chocolate</button>
-      <button class="pill" onclick="selectColour('LAVENDER')">Lavender</button>
-      <button class="pill" onclick="selectColour('JUBILEE')">Jubilee</button>
+    <div
+      style="
+        width:min(760px, 95%);
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        padding:10px;
+        border-radius:14px;
+        background: rgba(255,255,255,0.08);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+      "
+    >
+      <div class="grid-wrap" style="width:100%;">
+        <button class="pill" onclick="selectColour('BLACK')">Black</button>
+        <button class="pill" onclick="selectColour('BLUE')">Blue</button>
+        <button class="pill" onclick="selectColour('BUFF')">Buff</button>
+        <button class="pill" onclick="selectColour('WHITE')">White</button>
+        <button class="pill" onclick="selectColour('SPLASH')">Splash</button>
+        <button class="pill" onclick="selectColour('CHOCOLATE')">Chocolate</button>
+        <button class="pill" onclick="selectColour('LAVENDER')">Lavender</button>
+        <button class="pill" onclick="selectColour('JUBILEE')">Jubilee</button>
 
-      <button class="pill" onclick="selectColour('CUCKOO')">Cuckoo</button>
-      <button class="pill" onclick="selectColour('PARTRIDGE')">Partridge</button>
-      <button class="pill" onclick="selectColour('SILVER_LACED')">Silver Laced</button>
-      <button class="pill" onclick="selectColour('GOLD_LACED')">Gold Laced</button>
+        <button class="pill" onclick="selectColour('CUCKOO')">Cuckoo</button>
+        <button class="pill" onclick="selectColour('PARTRIDGE')">Partridge</button>
+        <button class="pill" onclick="selectColour('SILVER_LACED')">Silver Laced</button>
+        <button class="pill" onclick="selectColour('GOLD_LACED')">Gold Laced</button>
 
-      <button class="pill" onclick="selectColour('RED')">Red</button>
-      <button class="pill" onclick="selectColour('ISABEL')">Isabel</button>
-      <button class="pill" onclick="selectColour('CRELE')">Crele</button>
+        <button class="pill" onclick="selectColour('RED')">Red</button>
+        <button class="pill" onclick="selectColour('ISABEL')">Isabel</button>
+        <button class="pill" onclick="selectColour('CRELE')">Crele</button>
+      </div>
+    </div>
+
+    <!-- Backup Next button (optional) -->
+    <div style="width:min(760px, 95%); margin-top:14px; padding-top:12px; background:#1e3a8a;">
+      <button class="btn-yellow" onclick="saveColourAndContinue()" style="width: min(520px, 90%);">
+        Next
+      </button>
     </div>
   </div>
-
-  <!-- ✅ Sticky footer button (always visible) -->
-  <div
-    style="
-      width:min(760px, 95%);
-      margin-top:14px;
-      padding-top:12px;
-      position: sticky;
-      bottom: 0;
-      background: #1e3a8a;
-    "
-  >
-    <button class="btn-yellow" onclick="saveColourAndContinue()" style="width: min(520px, 90%);">
-      Next
-    </button>
-  </div>
-
-</div>
-
 
   <!-- ✅ JUDGING SCREEN -->
   <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
@@ -270,13 +255,43 @@
       <button onclick="resetShow()">New Show</button>
       <button onclick="exportCSV()">Export Results</button>
 
-      <div id="results" style="display:none; margin-top:20px;"></div>
+      <!-- NOTE: Results now show on Results Screen -->
+    </div>
+  </div>
+
+  <!-- ✅ RESULTS SCREEN -->
+  <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+    <h1>🏆 Results</h1>
+
+    <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
+    <p class="subline">Judge: <strong><span id="resultsJudgeName">-</span></strong></p>
+    <p class="subline">Class: <strong><span id="resultsClassName">-</span></strong></p>
+
+    <div class="card">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+        <button type="button" onclick="backToJudgingFromResults()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+          ← Back to Judging
+        </button>
+
+        <button type="button" onclick="exportCSV()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+          Export Results
+        </button>
+
+        <button type="button" onclick="newShowHome()"
+          style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
+          New Show (Home)
+        </button>
+      </div>
+
+      <div id="resultsPageContent"></div>
     </div>
   </div>
 
   <!-- ✅ cache-bust -->
-  <script src="app.js?v=11"></script>
-
+  <script src="app.js?v=20"></script>
 </body>
 </html>
+
 
