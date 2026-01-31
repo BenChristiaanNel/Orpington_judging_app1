@@ -8,64 +8,67 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
+
+  <!-- ✅ INTRO SCREEN -->
   <div id="introScreen" style="text-align:center; padding:20px;">
-  <h1>Orpington Judging App</h1>
+    <h1>Orpington Judging App</h1>
 
-  <img src="orpington.png"
-       alt="Orpington"
-       style="max-width:90%; border-radius:14px; margin:18px 0;">
+    <!-- Your uploaded image in GitHub main -->
+    <img src="orpington.png"
+         alt="Orpington"
+         style="max-width:90%; border-radius:14px; margin:18px 0;">
 
-  <p style="font-size:16px;">
-    Offline judging • Auto totals • Export results
-  </p>
+    <p style="font-size:16px;">
+      Offline judging • Auto totals • Export results
+    </p>
 
-  <button onclick="startApp()"
-          style="padding:12px 18px; font-size:16px; border-radius:10px;">
-    Start Judging
-  </button>
-</div>
+    <button onclick="startApp()"
+            style="padding:12px 18px; font-size:16px; border-radius:10px;">
+      Start Judging
+    </button>
+  </div>
 
+  <!-- ✅ JUDGING SCREEN (hidden until Start) -->
   <div id="judgingScreen" style="display:none;">
-  <h1>🐔 Orpington Judging</h1>
 
-  <div class="card">
-    <label>Bird ID</label>
-    <input type="text" id="birdId">
+    <h1>🐔 Orpington Judging</h1>
 
-    <label>Variety / Colour</label>
-    <input type="text" id="variety">
+    <div class="card">
+      <label>Bird ID</label>
+      <input type="text" id="birdId">
 
-    <label>Head & Comb</label>
-    <input type="range" min="0" max="20" id="head" value="0">
+      <label>Variety / Colour</label>
+      <input type="text" id="variety">
 
-    <label>Body & Type</label>
-    <input type="range" min="0" max="30" id="body" value="0">
+      <label>Head & Comb</label>
+      <input type="range" min="0" max="20" id="head" value="0">
 
-    <label>Legs & Feet</label>
-    <input type="range" min="0" max="15" id="legs" value="0">
+      <label>Body & Type</label>
+      <input type="range" min="0" max="30" id="body" value="0">
 
-    <label>Plumage Colour</label>
-    <input type="range" min="0" max="25" id="colour" value="0">
+      <label>Legs & Feet</label>
+      <input type="range" min="0" max="15" id="legs" value="0">
 
-    <label>Condition</label>
-    <input type="range" min="0" max="10" id="condition" value="0">
+      <label>Plumage Colour</label>
+      <input type="range" min="0" max="25" id="colour" value="0">
 
-    <h2>Total: <span id="total">0</span></h2>
+      <label>Condition</label>
+      <input type="range" min="0" max="10" id="condition" value="0">
 
-    <button onclick="saveBird()">Save Bird</button>
-<button onclick="showResults()">View Results</button>
-<button onclick="resetShow()">New Show</button>
-<button onclick="exportCSV()">Export Results</button>
+      <h2>Total: <span id="total">0</span></h2>
 
+      <button onclick="saveBird()">Save Bird</button>
+      <button onclick="showResults()">View Results</button>
+      <button onclick="resetShow()">New Show</button>
+      <button onclick="exportCSV()">Export Results</button>
 
-
- 
-    <div id="results" style="display:none; margin-top:20px;"></div>
+      <div id="results" style="display:none; margin-top:20px;"></div>
+    </div>
 
   </div>
-    
+
   <script src="app.js"></script>
 </body>
 </html>
-
