@@ -1,4 +1,4 @@
-// ----------------- SCREEN HELPERS -----------------
+// ----------------- HELPERS -----------------
 function lockScroll(locked) {
   document.body.style.overflow = locked ? "hidden" : "auto";
 }
@@ -7,190 +7,23 @@ function showOnly(screenId) {
   const ids = ["introScreen", "showScreen", "judgeScreen", "classScreen", "colourScreen", "judgingScreen"];
   ids.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.style.display = (id === screenId)
-      ? (id === "judgingScreen" ? "block" : "flex")
-      : "none";
+    if (!el) return;
+    if (id === screenId) {
+      el.style.display = (id === "judgingScreen") ? "block" : "flex";
+    } else {
+      el.style.display = "none";
+    }
   });
-
   lockScroll(screenId !== "judgingScreen");
 }
 
-// Always start clean (prevents “white screen”)
+// Always start clean
 window.addEventListener("load", () => {
   showOnly("introScreen");
   lockScroll(true);
 });
 
-// ----------------- COLOUR TEMPLATES (FULLY CUSTOM) -----------------
-const TEMPLATES = {
-  BLACK: {
-    name: "Black — solid colour emphasis",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Overall Orpington shape, depth, balance." },
-      { key:"head", label:"Head & Comb", max:10, help:"Comb, face, eyes, wattles." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Leg colour/feathering, stance." },
-      { key:"colour_depth", label:"Colour Depth & Sheen", max:30, help:"Deep black with strong sheen." },
-      { key:"colour_even", label:"Evenness (no rusting)", max:10, help:"No brown/rust patches, even colour." },
-      { key:"condition", label:"Condition", max:10, help:"Health, feather condition, cleanliness." },
-    ]
-  },
-  BLUE: {
-    name: "Blue — even shade + correct lacing",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type and balance." },
-      { key:"head", label:"Head & Comb", max:10, help:"Comb/face/eyes." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet/stance." },
-      { key:"blue_shade", label:"Blue Shade Evenness", max:20, help:"Even slate-blue tone." },
-      { key:"blue_lacing", label:"Lacing Quality", max:20, help:"Clear lacing, not smudged." },
-      { key:"condition", label:"Condition", max:10, help:"Health and feather quality." },
-    ]
-  },
-  BUFF: {
-    name: "Buff — uniform colour + richness",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Depth, width, Orpington shape." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Leg/feet/stance." },
-      { key:"buff_rich", label:"Colour Richness", max:20, help:"Rich buff tone, not washed out." },
-      { key:"buff_even", label:"Colour Uniformity", max:20, help:"Even shade (hackle/saddle/wing)." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather care." },
-    ]
-  },
-  WHITE: {
-    name: "White — purity + cleanliness",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"white_purity", label:"White Purity", max:30, help:"Pure white with no brassiness." },
-      { key:"white_clean", label:"Cleanliness / Stain-free", max:10, help:"No stains or discoloration." },
-      { key:"condition", label:"Condition", max:10, help:"Feather and body condition." },
-    ]
-  },
-  SPLASH: {
-    name: "Splash — clean pattern distribution",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"splash_base", label:"Base Colour Cleanliness", max:15, help:"Clean light base." },
-      { key:"splash_mark", label:"Marking Quality", max:25, help:"Blue/black splashes: clear and well placed." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather quality." },
-    ]
-  },
-  CHOCOLATE: {
-    name: "Chocolate — richness + evenness",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"choc_depth", label:"Chocolate Depth", max:25, help:"Deep chocolate tone." },
-      { key:"choc_even", label:"Evenness / No fading", max:15, help:"Even colour across body." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather quality." },
-    ]
-  },
-  LAVENDER: {
-    name: "Lavender — uniform dilution",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type and balance." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"lav_even", label:"Lavender Evenness", max:25, help:"Even lavender tone overall." },
-      { key:"lav_clean", label:"Colour Cleanliness", max:15, help:"No patchiness, clean tone." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather care." },
-    ]
-  },
-  JUBILEE: {
-    name: "Jubilee — spangle/pattern clarity",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"jub_ground", label:"Ground Colour Quality", max:15, help:"Correct base tone." },
-      { key:"jub_pattern", label:"Pattern / Spangles", max:25, help:"Clear markings, well defined pattern." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather quality." },
-    ]
-  },
-  CUCKOO: {
-    name: "Cuckoo — barring",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"cuckoo_bar", label:"Barring Clarity", max:25, help:"Clear, crisp barring." },
-      { key:"cuckoo_even", label:"Barring Evenness", max:15, help:"Even barring across body." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather care." },
-    ]
-  },
-  PARTRIDGE: {
-    name: "Partridge — pencilling/detail",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"partr_mark", label:"Markings / Pencilling", max:25, help:"Correct detail and pencilling." },
-      { key:"partr_hackle", label:"Hackle/Saddle Colour", max:15, help:"Correct tone, clean definition." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather quality." },
-    ]
-  },
-  SILVER_LACED: {
-    name: "Silver Laced — lacing + ground colour",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"sl_ground", label:"Ground Colour (Silver)", max:15, help:"Clean silver ground." },
-      { key:"sl_lacing", label:"Lacing Definition", max:25, help:"Sharp, even lacing." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather care." },
-    ]
-  },
-  GOLD_LACED: {
-    name: "Gold Laced — lacing + ground colour",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"gl_ground", label:"Ground Colour (Gold)", max:15, help:"Rich gold ground." },
-      { key:"gl_lacing", label:"Lacing Definition", max:25, help:"Sharp, even lacing." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather care." },
-    ]
-  },
-  RED: {
-    name: "Red — richness + uniformity",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"red_rich", label:"Red Richness", max:25, help:"Deep red tone." },
-      { key:"red_even", label:"Uniformity", max:15, help:"Even colour across body." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather care." },
-    ]
-  },
-  ISABEL: {
-    name: "Isabel — soft tone + even dilution",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"is_tone", label:"Isabel Tone Quality", max:20, help:"Correct soft isabel tone." },
-      { key:"is_even", label:"Evenness / Cleanliness", max:20, help:"Even tone, no patchiness." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather care." },
-    ]
-  },
-  CRELE: {
-    name: "Crele — pattern & clarity",
-    criteria: [
-      { key:"type", label:"Body & Type", max:30, help:"Orpington type." },
-      { key:"head", label:"Head & Comb", max:10, help:"Head points." },
-      { key:"legs", label:"Legs & Feet", max:10, help:"Legs/feet." },
-      { key:"crele_bar", label:"Barring / Pattern", max:25, help:"Clear crele pattern." },
-      { key:"crele_colour", label:"Colour Correctness", max:15, help:"Correct ground colour + contrast." },
-      { key:"condition", label:"Condition", max:10, help:"Condition and feather care." },
-    ]
-  },
-};
-
-// Friendly display labels
+// ----------------- COLOURS -----------------
 const COLOUR_LABELS = {
   BLACK:"Black", BLUE:"Blue", BUFF:"Buff", WHITE:"White", SPLASH:"Splash",
   CHOCOLATE:"Chocolate", LAVENDER:"Lavender", JUBILEE:"Jubilee",
@@ -198,11 +31,120 @@ const COLOUR_LABELS = {
   RED:"Red", ISABEL:"Isabel", CRELE:"Crele"
 };
 
+// Map colour -> SA scoring group
+function saGroupForColour(colourKey) {
+  if (colourKey === "BLACK") return "SA_BLACK";
+  if (colourKey === "BLUE" || colourKey === "LAVENDER") return "SA_BLUE_LAV";
+  return "SA_BUFF_WHITE_OTHER"; // Buff, White and ALL other colours
+}
+
+// ----------------- SA SCORE TEMPLATES (EXACT) -----------------
+const TEMPLATES = {
+  SA_BLACK: {
+    name: "THE BLACK (SA) — Total 100",
+    criteria: [
+      { key:"type", label:"Type", max:30, help:"(body 15, breast 10, saddle 5)" },
+      { key:"size", label:"Size", max:10, help:"" },
+      { key:"carriage", label:"Carriage", max:10, help:"" },
+      { key:"head", label:"Head", max:25, help:"(skull 5, comb 7, face 5, eyes 5, beak 3)" },
+      { key:"skin", label:"Skin", max:5, help:"" },
+      { key:"legs", label:"Legs and feet", max:5, help:"" },
+      { key:"plumage_condition", label:"Plumage and condition", max:10, help:"" },
+      { key:"tail", label:"Tail", max:5, help:"" }
+    ]
+  },
+
+  SA_BLUE_LAV: {
+    name: "THE BLUE AND LAVENDER (SA) — Total 100",
+    criteria: [
+      { key:"type", label:"Type", max:25, help:"" },
+      { key:"size", label:"Size (with utility qualities)", max:20, help:"" },
+      { key:"head", label:"Head", max:10, help:"" },
+      { key:"legs", label:"Legs and feet", max:10, help:"" },
+      { key:"colour_plumage", label:"Colour and plumage", max:25, help:"" },
+      { key:"condition", label:"Condition", max:10, help:"" }
+    ]
+  },
+
+  SA_BUFF_WHITE_OTHER: {
+    name: "THE BUFF, WHITE AND OTHER COLOURS (SA) — Total 100",
+    criteria: [
+      { key:"type", label:"Type", max:30, help:"" },
+      { key:"size", label:"Size", max:10, help:"" },
+      { key:"head", label:"Head", max:15, help:"" },
+      { key:"legs", label:"Legs and feet", max:10, help:"" },
+      { key:"colour_plumage", label:"Colour and plumage", max:20, help:"" },
+      { key:"condition", label:"Condition", max:15, help:"" }
+    ]
+  }
+};
+
+// ----------------- DISQUALIFICATIONS -----------------
+const DQ_GENERAL = [
+  "Side spikes on comb",
+  "White in ear-lobes",
+  "Feather or fluff on shanks or feet",
+  "Long legs",
+  "Any deformity",
+  "Yellow skin, yellow beak and yellow on the shanks or feet",
+  "Any yellow or sappiness in the white",
+  "Coarseness in head, legs or feathers of the buff",
+  "Any trimming or faking"
+];
+
+const DQ_BY_COLOUR = {
+  BLACK: [
+    "More than one spot (~12mm) of positive white in any part of plumage",
+    "Two or more feathers tipped/edged with positive white",
+    "Light coloured beak and eyes",
+    "Leg colour other than dark slate"
+  ],
+  BLUE: [
+    "Red, yellow or positive white in plumage",
+    "Light coloured beak and eyes",
+    "Leg colour other than black or blue"
+  ],
+  BUFF: [
+    "Blue shanks",
+    "Coarseness in face"
+  ],
+  WHITE: [
+    "Blue shanks"
+  ],
+  SPLASH: [
+    "Feathers not to be more than 50% black (Splash Black rule)",
+    "Feathers not to be more than 50% blue (Splash Blue rule)",
+    "Any appearance of rust in plumage"
+  ]
+};
+
+function populateDQReasons(colourKey) {
+  const sel = document.getElementById("dqReason");
+  if (!sel) return;
+
+  const list = [
+    ...DQ_GENERAL.map(x => `GENERAL: ${x}`),
+    ...(DQ_BY_COLOUR[colourKey] ? DQ_BY_COLOUR[colourKey].map(x => `COLOUR: ${x}`) : [])
+  ];
+
+  sel.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = "";
+  first.textContent = "-- Select reason --";
+  sel.appendChild(first);
+
+  list.forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    sel.appendChild(opt);
+  });
+}
+
 // ----------------- FLOW -----------------
 function startApp() {
   showOnly("showScreen");
 
-  // Preselect last used show
   const savedShow = localStorage.getItem("currentShow") || "";
   const sel = document.getElementById("showSelect");
   if (sel && savedShow) sel.value = savedShow;
@@ -214,12 +156,10 @@ function saveShowAndContinue() {
   if (!showName) return alert("Please choose a show.");
 
   localStorage.setItem("currentShow", showName);
-  const showLabel = document.getElementById("showNameDisplay");
-  if (showLabel) showLabel.textContent = showName;
+  document.getElementById("showNameDisplay").textContent = showName;
 
   showOnly("judgeScreen");
 
-  // Pre-fill last judge
   const savedJudge = localStorage.getItem("currentJudge") || "";
   const j = document.getElementById("judgeName");
   if (j) j.value = savedJudge;
@@ -231,121 +171,138 @@ function saveJudgeAndContinue() {
   if (!judgeName) return alert("Please enter the judge name.");
 
   localStorage.setItem("currentJudge", judgeName);
-  const judgeLabel = document.getElementById("judgeNameDisplay");
-  if (judgeLabel) judgeLabel.textContent = judgeName;
+  document.getElementById("judgeNameDisplay").textContent = judgeName;
 
   showOnly("classScreen");
 
   const savedClass = localStorage.getItem("currentClass") || "";
-  const disp = document.getElementById("classSelectedDisplay");
-  if (disp) disp.textContent = savedClass || "None";
+  document.getElementById("classSelectedDisplay").textContent = savedClass || "None";
 }
 
 function selectClass(className) {
   localStorage.setItem("currentClass", className);
-  const disp = document.getElementById("classSelectedDisplay");
-  if (disp) disp.textContent = className;
+  document.getElementById("classSelectedDisplay").textContent = className;
 }
 
 function saveClassAndContinue() {
   const className = localStorage.getItem("currentClass") || "";
   if (!className) return alert("Please select a class first.");
 
-  const classLabel = document.getElementById("classNameDisplay");
-  if (classLabel) classLabel.textContent = className;
+  document.getElementById("classNameDisplay").textContent = className;
 
   showOnly("colourScreen");
 
   const savedColour = localStorage.getItem("currentColour") || "";
-  const disp = document.getElementById("colourSelectedDisplay");
-  if (disp) disp.textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
+  document.getElementById("colourSelectedDisplay").textContent =
+    savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
 }
 
 function selectColour(colourKey) {
   localStorage.setItem("currentColour", colourKey);
-  const disp = document.getElementById("colourSelectedDisplay");
-  if (disp) disp.textContent = COLOUR_LABELS[colourKey] || colourKey;
+  document.getElementById("colourSelectedDisplay").textContent = COLOUR_LABELS[colourKey] || colourKey;
 }
 
 function saveColourAndContinue() {
   const colourKey = localStorage.getItem("currentColour") || "";
   if (!colourKey) return alert("Please select a colour first.");
 
-  const colourLabel = document.getElementById("colourNameDisplay");
-  if (colourLabel) colourLabel.textContent = COLOUR_LABELS[colourKey] || colourKey;
+  document.getElementById("colourNameDisplay").textContent = COLOUR_LABELS[colourKey] || colourKey;
 
-  // Build the scoring template UI for that colour
-  renderTemplate(colourKey);
+  renderTemplateForColour(colourKey);
+  resetDQUI();
+  populateDQReasons(colourKey);
 
   showOnly("judgingScreen");
   lockScroll(false);
   calculateTotal();
+
+  // Focus Bird ID
+  const birdIdInput = document.getElementById("birdId");
+  if (birdIdInput) birdIdInput.focus();
 }
 
-// ----------------- DYNAMIC SCORING UI -----------------
-function renderTemplate(colourKey) {
-  const template = TEMPLATES[colourKey];
+// Back buttons
+function backToClass() {
+  showOnly("classScreen");
+  const savedClass = localStorage.getItem("currentClass") || "";
+  document.getElementById("classSelectedDisplay").textContent = savedClass || "None";
+}
+
+function backToColour() {
+  showOnly("colourScreen");
+  const savedColour = localStorage.getItem("currentColour") || "";
+  document.getElementById("colourSelectedDisplay").textContent =
+    savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
+}
+
+// ----------------- SCORING UI -----------------
+function renderTemplateForColour(colourKey) {
+  const groupKey = saGroupForColour(colourKey);
+  const template = TEMPLATES[groupKey];
+
   const container = document.getElementById("scoringContainer");
   const tName = document.getElementById("templateName");
-
   if (!container || !tName) return;
 
-  if (!template) {
-    tName.textContent = "No template found for this colour.";
-    container.innerHTML = "";
-    return;
-  }
-
-  tName.textContent = template.name;
+  tName.textContent = template ? template.name : "No template found";
+  if (!template) { container.innerHTML = ""; return; }
 
   let html = "";
   template.criteria.forEach(c => {
     html += `
       <div class="score-row">
-        <label>${c.label} <span class="score-max">(0–${c.max})</span></label>
+        <label>${c.label} <span style="font-weight:700; opacity:0.75;">(0–${c.max})</span></label>
         ${c.help ? `<div class="score-help">${c.help}</div>` : ""}
-        <input
-          type="range"
-          min="0"
-          max="${c.max}"
-          value="0"
-          data-crit-key="${c.key}"
-          data-crit-max="${c.max}"
-          class="score-slider"
-        />
+        <div class="score-line">
+          <input type="range"
+                 min="0"
+                 max="${c.max}"
+                 value="0"
+                 class="score-slider"
+                 data-crit-key="${c.key}"
+                 oninput="updateSliderValue(this)" />
+          <span class="score-badge">0</span>
+        </div>
       </div>
     `;
   });
 
   container.innerHTML = html;
-
-  // Attach listeners to newly created sliders
-  const sliders = container.querySelectorAll(".score-slider");
-  sliders.forEach(s => s.addEventListener("input", calculateTotal));
+  calculateTotal();
 }
 
-function getCurrentTemplate() {
-  const colourKey = localStorage.getItem("currentColour") || "";
-  return TEMPLATES[colourKey] || null;
+function updateSliderValue(slider) {
+  const badge = slider.parentElement ? slider.parentElement.querySelector(".score-badge") : null;
+  if (badge) badge.textContent = slider.value;
+  calculateTotal();
 }
 
 function calculateTotal() {
-  const container = document.getElementById("scoringContainer");
   const totalDisplay = document.getElementById("total");
-  if (!container || !totalDisplay) return;
+  const container = document.getElementById("scoringContainer");
+  const dqToggle = document.getElementById("dqToggle");
+
+  if (!totalDisplay || !container) return;
+
+  if (dqToggle && dqToggle.checked) {
+    totalDisplay.textContent = "0";
+    return;
+  }
 
   let total = 0;
   container.querySelectorAll(".score-slider").forEach(sl => {
     total += Number(sl.value);
   });
-
-  totalDisplay.textContent = total;
+  totalDisplay.textContent = String(total);
 }
 
 function getScoresObject() {
   const container = document.getElementById("scoringContainer");
-  const template = getCurrentTemplate();
+  const colourKey = localStorage.getItem("currentColour") || "";
+  const groupKey = saGroupForColour(colourKey);
+  const template = TEMPLATES[groupKey];
   const scores = {};
+
   if (!container || !template) return scores;
 
   template.criteria.forEach(c => {
@@ -354,6 +311,62 @@ function getScoresObject() {
   });
 
   return scores;
+}
+
+// Auto next bird: reset everything except show/judge/class/colour
+function prepareNextBird() {
+  const container = document.getElementById("scoringContainer");
+  if (container) {
+    container.querySelectorAll(".score-slider").forEach(sl => {
+      sl.value = 0;
+      const badge = sl.parentElement ? sl.parentElement.querySelector(".score-badge") : null;
+      if (badge) badge.textContent = "0";
+    });
+  }
+
+  const c = document.getElementById("commentBox");
+  if (c) c.value = "";
+
+  resetDQUI();
+  calculateTotal();
+
+  const birdIdInput = document.getElementById("birdId");
+  if (birdIdInput) {
+    birdIdInput.value = "";
+    birdIdInput.focus();
+  }
+}
+
+// ----------------- DQ UI -----------------
+function resetDQUI() {
+  const toggle = document.getElementById("dqToggle");
+  const fields = document.getElementById("dqFields");
+  const reason = document.getElementById("dqReason");
+  const note = document.getElementById("dqNote");
+
+  if (toggle) toggle.checked = false;
+  if (fields) fields.style.display = "none";
+  if (reason) reason.value = "";
+  if (note) note.value = "";
+}
+
+function toggleDQ() {
+  const toggle = document.getElementById("dqToggle");
+  const fields = document.getElementById("dqFields");
+  if (!toggle || !fields) return;
+
+  fields.style.display = toggle.checked ? "block" : "none";
+  calculateTotal();
+}
+
+function quickDQ() {
+  const toggle = document.getElementById("dqToggle");
+  if (toggle && !toggle.checked) {
+    toggle.checked = true;
+    toggleDQ();
+  }
+  const reason = document.getElementById("dqReason");
+  if (reason) reason.focus();
 }
 
 // ----------------- SAVE / RESULTS / EXPORT -----------------
@@ -369,24 +382,36 @@ function saveBird() {
     alert("Please select show, judge, class, and colour first.");
     return;
   }
-
   if (!birdId) {
     alert("Please enter Bird ID");
     return;
   }
 
+  const isDQ = document.getElementById("dqToggle")?.checked || false;
+  const dqReason = (document.getElementById("dqReason")?.value || "").trim();
+  const dqNote = (document.getElementById("dqNote")?.value || "").trim();
+
+  if (isDQ && !dqReason) {
+    alert("If Disqualified is selected, please choose a DQ reason.");
+    return;
+  }
+
+  const comment = (document.getElementById("commentBox")?.value || "").trim();
   const scores = getScoresObject();
-  const total = Number(document.getElementById("total").textContent || "0");
+  const total = isDQ ? 0 : Number(document.getElementById("total").textContent || "0");
 
   const bird = {
     show: showName,
     judge: judgeName,
     class: className,
-    colour: colourKey,              // selected colour key
-    variety: colourKey,             // keep compatibility with existing results grouping
+    colour: colourKey,
     id: birdId,
     total,
-    scores,                         // FULL template scores
+    scores,
+    disqualified: isDQ,
+    dqReason,
+    dqNote,
+    comment,
     timestamp: new Date().toISOString()
   };
 
@@ -394,9 +419,8 @@ function saveBird() {
   birds.push(bird);
   localStorage.setItem("birds", JSON.stringify(birds));
 
-  // speed: clear Bird ID only
-  document.getElementById("birdId").value = "";
   alert("Bird saved!");
+  prepareNextBird();
 }
 
 function showResults() {
@@ -417,25 +441,41 @@ function showResults() {
 
   const grouped = {};
   birds.forEach(b => {
-    if (!grouped[b.variety]) grouped[b.variety] = [];
-    grouped[b.variety].push(b);
+    if (!grouped[b.colour]) grouped[b.colour] = [];
+    grouped[b.colour].push(b);
   });
 
   let html = "";
-  Object.keys(grouped).forEach(varietyKey => {
-    grouped[varietyKey].sort((a, b) => Number(b.total) - Number(a.total));
-    const label = COLOUR_LABELS[varietyKey] || varietyKey;
 
-    html += `<h3>${label} (Total entries: ${grouped[varietyKey].length})</h3>`;
+  Object.keys(grouped).forEach(colKey => {
+    const label = COLOUR_LABELS[colKey] || colKey;
 
-    grouped[varietyKey].forEach((bird, index) => {
-      let style = "";
-      if (index === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
-      else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
-      else if (index === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+    const all = grouped[colKey];
+    const ranked = all.filter(x => !x.disqualified).sort((a,b) => Number(b.total) - Number(a.total));
+    const dq = all.filter(x => x.disqualified);
 
-      html += `<p style="${style}">${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong></p>`;
-    });
+    html += `<h3>${label} (Total entries: ${all.length})</h3>`;
+
+    if (ranked.length === 0) {
+      html += `<p><em>No ranked birds (all disqualified).</em></p>`;
+    } else {
+      ranked.forEach((bird, index) => {
+        let style = "";
+        if (index === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+        else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+        else if (index === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+
+        html += `<p style="${style}">${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong></p>`;
+      });
+    }
+
+    if (dq.length > 0) {
+      html += `<p style="margin-top:10px; font-weight:900;">Disqualified:</p>`;
+      dq.forEach(b => {
+        const reason = (b.dqReason || "No reason").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        html += `<p style="padding:6px 0; opacity:0.95;"><strong>Bird ${b.id}</strong> — <em>${reason}</em></p>`;
+      });
+    }
   });
 
   resultsDiv.innerHTML = html;
@@ -463,13 +503,16 @@ function exportCSV() {
     return;
   }
 
-  // Store scores safely as JSON in a single column (because templates differ per colour)
-  let csv = "Show,Judge,Class,Colour,Bird ID,Total,ScoresJSON,Timestamp\n";
+  let csv = "Show,Judge,Class,Colour,Bird ID,Disqualified,DQ Reason,DQ Note,Total,ScoresJSON,Comment,Timestamp\n";
 
   birds.forEach(b => {
     const colourLabel = COLOUR_LABELS[b.colour] || b.colour;
-    const scoresJson = JSON.stringify(b.scores || {}).replace(/"/g, '""'); // CSV-safe
-    csv += `"${b.show}","${b.judge}","${b.class}","${colourLabel}","${b.id}",${b.total},"${scoresJson}",${b.timestamp}\n`;
+    const scoresJson = JSON.stringify(b.scores || {}).replace(/"/g, '""');
+    const comment = (b.comment || "").replace(/"/g, '""');
+    const dqReason = (b.dqReason || "").replace(/"/g, '""');
+    const dqNote = (b.dqNote || "").replace(/"/g, '""');
+
+    csv += `"${b.show}","${b.judge}","${b.class}","${colourLabel}","${b.id}",${b.disqualified ? "YES":"NO"},"${dqReason}","${dqNote}",${b.total},"${scoresJson}","${comment}",${b.timestamp}\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv" });
