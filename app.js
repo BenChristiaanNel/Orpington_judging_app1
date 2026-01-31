@@ -1,3 +1,17 @@
+window.addEventListener("load", () => {
+  // Always start at intro screen
+  const intro = document.getElementById("introScreen");
+  const show = document.getElementById("showScreen");
+  const judge = document.getElementById("judgingScreen");
+
+  if (intro) intro.style.display = "flex";
+  if (show) show.style.display = "none";
+  if (judge) judge.style.display = "none";
+
+  document.body.style.overflow = "hidden";
+});
+
+
 // --------- helpers ----------
 function lockScroll(locked) {
   document.body.style.overflow = locked ? "hidden" : "auto";
