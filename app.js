@@ -4,20 +4,25 @@ function lockScroll(locked) {
 }
 
 function showOnly(screenId) {
-  const ids = ["introScreen", "showScreen", "judgeScreen", "classScreen", "colourScreen", "judgingScreen"];
+  const ids = [
+    "introScreen", "showScreen", "judgeScreen", "classScreen", "colourScreen",
+    "judgingScreen", "resultsScreen"
+  ];
+
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
+
     if (id === screenId) {
-      el.style.display = (id === "judgingScreen") ? "block" : "flex";
+      el.style.display = (id === "judgingScreen" || id === "resultsScreen") ? "block" : "flex";
     } else {
       el.style.display = "none";
     }
   });
-  lockScroll(screenId !== "judgingScreen");
+
+  lockScroll(!(screenId === "judgingScreen" || screenId === "resultsScreen"));
 }
 
-// Always start clean
 window.addEventListener("load", () => {
   showOnly("introScreen");
   lockScroll(true);
@@ -31,14 +36,13 @@ const COLOUR_LABELS = {
   RED:"Red", ISABEL:"Isabel", CRELE:"Crele"
 };
 
-// Map colour -> SA scoring group
 function saGroupForColour(colourKey) {
   if (colourKey === "BLACK") return "SA_BLACK";
   if (colourKey === "BLUE" || colourKey === "LAVENDER") return "SA_BLUE_LAV";
-  return "SA_BUFF_WHITE_OTHER"; // Buff, White and ALL other colours
+  return "SA_BUFF_WHITE_OTHER";
 }
 
-// ----------------- SA SCORE TEMPLATES (EXACT) -----------------
+// ----------------- SA TEMPLATES -----------------
 const TEMPLATES = {
   SA_BLACK: {
     name: "THE BLACK (SA) — Total 100",
@@ -197,23 +201,21 @@ function saveClassAndContinue() {
     savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
 }
 
+// ✅ Tap colour = auto-continue
 function selectColour(colourKey) {
   localStorage.setItem("currentColour", colourKey);
 
   const disp = document.getElementById("colourSelectedDisplay");
   if (disp) disp.textContent = COLOUR_LABELS[colourKey] || colourKey;
 
-  // ✅ Auto-advance to judging after selecting a colour
-  // Small delay so the selection text updates before switching screens
+  // small delay so text updates before switching
   setTimeout(() => {
-    // Only auto-advance if we are currently on the colour screen
     const colourScreen = document.getElementById("colourScreen");
     if (colourScreen && colourScreen.style.display !== "none") {
       saveColourAndContinue();
     }
   }, 120);
 }
-
 
 function saveColourAndContinue() {
   const colourKey = localStorage.getItem("currentColour") || "";
@@ -229,7 +231,6 @@ function saveColourAndContinue() {
   lockScroll(false);
   calculateTotal();
 
-  // Focus Bird ID
   const birdIdInput = document.getElementById("birdId");
   if (birdIdInput) birdIdInput.focus();
 }
@@ -246,6 +247,26 @@ function backToColour() {
   const savedColour = localStorage.getItem("currentColour") || "";
   document.getElementById("colourSelectedDisplay").textContent =
     savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
+}
+
+function backToJudgingFromResults() {
+  showOnly("judgingScreen");
+  lockScroll(false);
+}
+
+// New show button from results screen
+function newShowHome() {
+  const fullReset = confirm(
+    "Start a new show?\n\nOK = Clear ALL saved birds on this device.\nCancel = Keep saved birds but go back to Home."
+  );
+
+  if (fullReset) localStorage.removeItem("birds");
+
+  localStorage.removeItem("currentClass");
+  localStorage.removeItem("currentColour");
+
+  showOnly("introScreen");
+  lockScroll(true);
 }
 
 // ----------------- SCORING UI -----------------
@@ -326,7 +347,7 @@ function getScoresObject() {
   return scores;
 }
 
-// Auto next bird: reset everything except show/judge/class/colour
+// Auto next bird reset
 function prepareNextBird() {
   const container = document.getElementById("scoringContainer");
   if (container) {
@@ -437,9 +458,6 @@ function saveBird() {
 }
 
 function showResults() {
-  const resultsDiv = document.getElementById("results");
-  resultsDiv.style.display = "block";
-
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
   const className = localStorage.getItem("currentClass") || "";
@@ -447,11 +465,24 @@ function showResults() {
   let birds = JSON.parse(localStorage.getItem("birds") || "[]");
   birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
 
+  // Header labels on results screen
+  const rs = document.getElementById("resultsShowName");
+  const rj = document.getElementById("resultsJudgeName");
+  const rc = document.getElementById("resultsClassName");
+  if (rs) rs.textContent = showName || "-";
+  if (rj) rj.textContent = judgeName || "-";
+  if (rc) rc.textContent = className || "-";
+
+  const resultsDiv = document.getElementById("resultsPageContent");
+  if (!resultsDiv) return;
+
   if (birds.length === 0) {
     resultsDiv.innerHTML = "<p>No birds saved yet for this show/judge/class.</p>";
+    showOnly("resultsScreen");
     return;
   }
 
+  // Group by colour
   const grouped = {};
   birds.forEach(b => {
     if (!grouped[b.colour]) grouped[b.colour] = [];
@@ -464,7 +495,7 @@ function showResults() {
     const label = COLOUR_LABELS[colKey] || colKey;
 
     const all = grouped[colKey];
-    const ranked = all.filter(x => !x.disqualified).sort((a,b) => Number(b.total) - Number(a.total));
+    const ranked = all.filter(x => !x.disqualified).sort((a, b) => Number(b.total) - Number(a.total));
     const dq = all.filter(x => x.disqualified);
 
     html += `<h3>${label} (Total entries: ${all.length})</h3>`;
@@ -489,16 +520,17 @@ function showResults() {
         html += `<p style="padding:6px 0; opacity:0.95;"><strong>Bird ${b.id}</strong> — <em>${reason}</em></p>`;
       });
     }
+
+    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
   });
 
   resultsDiv.innerHTML = html;
+  showOnly("resultsScreen");
 }
 
 function resetShow() {
   if (confirm("Start a new show? This will delete ALL saved birds on this device.")) {
     localStorage.removeItem("birds");
-    const resultsDiv = document.getElementById("results");
-    if (resultsDiv) resultsDiv.innerHTML = "";
     alert("New show started.");
   }
 }
@@ -542,3 +574,4 @@ function exportCSV() {
 
   URL.revokeObjectURL(url);
 }
+
