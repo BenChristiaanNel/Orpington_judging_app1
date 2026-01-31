@@ -12,23 +12,49 @@
 <body>
 
   <!-- ✅ INTRO SCREEN -->
-  <div id="introScreen" style="text-align:center; padding:20px;">
-    <h1>Orpington Judging App</h1>
+  <div id="introScreen"
+     style="
+       text-align:center;
+       padding:40px 20px;
+       min-height:100vh;
+       background:#1e3a8a;
+       color:white;
+       display:flex;
+       flex-direction:column;
+       justify-content:center;
+       align-items:center;
+     ">
 
-    <!-- Your uploaded image in GitHub main -->
-    <img src="orpington.png"
-         alt="Orpington"
-         style="max-width:90%; border-radius:14px; margin:18px 0;">
+  <h1 style="font-size:42px; font-weight:800; margin-bottom:24px;">
+    Orpington Show Judging
+  </h1>
 
-    <p style="font-size:16px;">
-      Offline judging • Auto totals • Export results
-    </p>
+  <img src="orpington.png"
+       alt="Orpington"
+       style="
+         max-width:70%;
+         border-radius:18px;
+         margin-bottom:30px;
+         box-shadow:0 10px 25px rgba(0,0,0,0.4);
+       ">
 
-    <button onclick="startApp()"
-            style="padding:12px 18px; font-size:16px; border-radius:10px;">
-      Start Judging
-    </button>
-  </div>
+  <button onclick="startApp()"
+          style="
+            padding:22px 36px;
+            font-size:22px;
+            font-weight:700;
+            border-radius:14px;
+            background:#facc15;
+            color:#1e3a8a;
+            border:none;
+            cursor:pointer;
+            box-shadow:0 6px 15px rgba(0,0,0,0.35);
+          ">
+    Start Judging
+  </button>
+
+</div>
+
 
   <!-- ✅ JUDGING SCREEN (hidden until Start) -->
   <div id="judgingScreen" style="display:none;">
