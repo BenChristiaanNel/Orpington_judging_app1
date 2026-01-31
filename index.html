@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 
-  <!-- ✅ Disable scrolling for full-screen pages -->
+  <!-- ✅ Lock scrolling on full-screen pages -->
   <style>
     html, body {
       margin: 0;
@@ -115,66 +115,76 @@
             ">
       Next
     </button>
-
   </div>
- <!-- ✅ JUDGE NAME SCREEN -->
-<div id="judgeScreen"
-     style="
-       display:none;
-       text-align:center;
-       padding:40px 20px;
-       height:100vh;
-       background:#1e3a8a;
-       color:white;
-       align-items:center;
-       justify-content:center;
-       flex-direction:column;
-       overflow:hidden;
-     ">
-
-  <h1 style="font-size:34px; font-weight:800; margin-bottom:22px;">
-    Judge Name
-  </h1>
-
-  <input id="judgeName"
-         type="text"
-         placeholder="Enter judge name"
-         style="
-           width:min(520px, 90%);
-           padding:16px 14px;
-           font-size:18px;
-           border-radius:12px;
-           border:none;
-           outline:none;
-           margin-bottom:22px;
-         ">
-
-  <button onclick="saveJudgeAndContinue()"
-          style="
-            padding:22px 36px;
-            font-size:22px;
-            font-weight:700;
-            border-radius:14px;
-            background:#facc15;
-            color:#1e3a8a;
-            border:none;
-            cursor:pointer;
-            box-shadow:0 6px 15px rgba(0,0,0,0.35);
-          ">
-    Next
-  </button>
-
-</div>
 
 
+  <!-- ✅ JUDGE NAME SCREEN -->
+  <div id="judgeScreen"
+       style="
+         display:none;
+         text-align:center;
+         padding:40px 20px;
+         height:100vh;
+         background:#1e3a8a;
+         color:white;
+         align-items:center;
+         justify-content:center;
+         flex-direction:column;
+         overflow:hidden;
+       ">
+
+    <h1 style="font-size:34px; font-weight:800; margin-bottom:22px;">
+      Judge Name
+    </h1>
+
+    <input id="judgeName"
+           type="text"
+           placeholder="Enter judge name"
+           style="
+             width:min(520px, 90%);
+             padding:16px 14px;
+             font-size:18px;
+             border-radius:12px;
+             border:none;
+             outline:none;
+             margin-bottom:22px;
+           ">
+
+    <button onclick="saveJudgeAndContinue()"
+            style="
+              padding:22px 36px;
+              font-size:22px;
+              font-weight:700;
+              border-radius:14px;
+              background:#facc15;
+              color:#1e3a8a;
+              border:none;
+              cursor:pointer;
+              box-shadow:0 6px 15px rgba(0,0,0,0.35);
+            ">
+      Next
+    </button>
+  </div>
 
 
   <!-- ✅ JUDGING SCREEN -->
-  <div id="judgingScreen" style="display:none; overflow:auto; height:100vh; padding:20px;">
+  <div id="judgingScreen"
+       style="
+         display:none;
+         height:100vh;
+         overflow:auto;
+         padding:20px;
+         background:#ffffff;
+       ">
+
     <h1>🐔 Orpington Judging</h1>
 
     <p style="margin-top:-10px; font-size:16px;">
       Show: <strong><span id="showNameDisplay">Not selected</span></strong>
+    </p>
+
+    <p style="margin-top:-6px; font-size:16px;">
+      Judge: <strong><span id="judgeNameDisplay">Not selected</span></strong>
     </p>
 
     <div class="card">
@@ -210,7 +220,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=4"></script>
-
+  <!-- ✅ Cache-bust JS to prevent “old version” showing on phone -->
+  <script src="app.js?v=5"></script>
 </body>
 </html>
