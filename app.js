@@ -15,12 +15,6 @@ function calculateTotal() {
   totalDisplay.innerText = total;
 }
 
-// Intro -> judging
-function startApp() {
-  document.getElementById("introScreen").style.display = "none";
-  document.getElementById("judgingScreen").style.display = "block";
-}
-
 // Save bird entry
 function saveBird() {
   const birdId = document.getElementById('birdId').value.trim();
@@ -126,4 +120,49 @@ function exportCSV() {
 
   URL.revokeObjectURL(url);
 }
+// Lock / unlock scrolling
+function lockScroll(locked) {
+  document.body.style.overflow = locked ? "hidden" : "auto";
+}
+
+// Intro -> Show selection
+function startApp() {
+  document.getElementById("introScreen").style.display = "none";
+  document.getElementById("showScreen").style.display = "flex";
+  document.getElementById("judgingScreen").style.display = "none";
+
+  lockScroll(true);
+
+  // Remember last selected show
+  const savedShow = localStorage.getItem("currentShow");
+  const sel = document.getElementById("showSelect");
+  if (sel && savedShow) sel.value = savedShow;
+}
+
+// Save show and go to judging
+function saveShowAndContinue() {
+  const sel = document.getElementById("showSelect");
+  const showName = sel.value.trim();
+
+  if (!showName) {
+    alert("Please choose a show.");
+    return;
+  }
+
+  localStorage.setItem("currentShow", showName);
+
+  const showLabel = document.getElementById("showNameDisplay");
+  if (showLabel) showLabel.textContent = showName;
+
+  document.getElementById("showScreen").style.display = "none";
+  document.getElementById("judgingScreen").style.display = "block";
+
+  lockScroll(false);
+}
+
+// On page load, lock scroll on intro
+window.addEventListener("load", () => {
+  lockScroll(true);
+});
+
 
