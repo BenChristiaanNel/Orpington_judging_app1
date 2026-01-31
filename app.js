@@ -1,29 +1,30 @@
-// ---------- FORCE CORRECT START SCREEN (prevents weird cached states) ----------
+// ---------- FORCE CORRECT START SCREEN ----------
 window.addEventListener("load", () => {
   const intro = document.getElementById("introScreen");
   const show = document.getElementById("showScreen");
   const judge = document.getElementById("judgeScreen");
+  const classScreen = document.getElementById("classScreen");
   const judging = document.getElementById("judgingScreen");
 
   if (intro) intro.style.display = "flex";
   if (show) show.style.display = "none";
   if (judge) judge.style.display = "none";
+  if (classScreen) classScreen.style.display = "none";
   if (judging) judging.style.display = "none";
 
-  // lock scroll on full-screen pages
   document.body.style.overflow = "hidden";
 });
 
-// Helper to lock/unlock scrolling (intro/show/judge locked, judging unlocked)
 function lockScroll(locked) {
   document.body.style.overflow = locked ? "hidden" : "auto";
 }
 
-// ---------- INTRO -> SHOW SELECTION ----------
+// ---------- INTRO -> SHOW ----------
 function startApp() {
   document.getElementById("introScreen").style.display = "none";
   document.getElementById("showScreen").style.display = "flex";
   document.getElementById("judgeScreen").style.display = "none";
+  document.getElementById("classScreen").style.display = "none";
   document.getElementById("judgingScreen").style.display = "none";
 
   lockScroll(true);
@@ -46,12 +47,12 @@ function saveShowAndContinue() {
 
   localStorage.setItem("currentShow", showName);
 
-  // show name on judging screen
   const showLabel = document.getElementById("showNameDisplay");
   if (showLabel) showLabel.textContent = showName;
 
   document.getElementById("showScreen").style.display = "none";
   document.getElementById("judgeScreen").style.display = "flex";
+  document.getElementById("classScreen").style.display = "none";
   document.getElementById("judgingScreen").style.display = "none";
 
   lockScroll(true);
@@ -62,7 +63,7 @@ function saveShowAndContinue() {
   if (j) j.value = savedJudge;
 }
 
-// ---------- JUDGE -> JUDGING ----------
+// ---------- JUDGE -> CLASS ----------
 function saveJudgeAndContinue() {
   const j = document.getElementById("judgeName");
   const judgeName = (j ? j.value : "").trim();
@@ -74,17 +75,45 @@ function saveJudgeAndContinue() {
 
   localStorage.setItem("currentJudge", judgeName);
 
-  // show judge on judging screen
   const judgeLabel = document.getElementById("judgeNameDisplay");
   if (judgeLabel) judgeLabel.textContent = judgeName;
 
   document.getElementById("judgeScreen").style.display = "none";
+  document.getElementById("classScreen").style.display = "flex";
+  document.getElementById("judgingScreen").style.display = "none";
+
+  lockScroll(true);
+
+  // Show selected class if saved
+  const savedClass = localStorage.getItem("currentClass") || "";
+  const disp = document.getElementById("classSelectedDisplay");
+  if (disp) disp.textContent = savedClass || "None";
+}
+
+function selectClass(className) {
+  localStorage.setItem("currentClass", className);
+
+  const disp = document.getElementById("classSelectedDisplay");
+  if (disp) disp.textContent = className;
+}
+
+// ---------- CLASS -> JUDGING ----------
+function saveClassAndContinue() {
+  const className = localStorage.getItem("currentClass") || "";
+
+  if (!className) {
+    alert("Please select a class first.");
+    return;
+  }
+
+  const classLabel = document.getElementById("classNameDisplay");
+  if (classLabel) classLabel.textContent = className;
+
+  document.getElementById("classScreen").style.display = "none";
   document.getElementById("judgingScreen").style.display = "block";
 
-  // allow scrolling on judging screen
   lockScroll(false);
 
-  // Make sure totals start correct
   calculateTotal();
 }
 
@@ -111,9 +140,10 @@ function saveBird() {
 
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
+  const className = localStorage.getItem("currentClass") || "";
 
-  if (!showName || !judgeName) {
-    alert("Please select a show and enter judge name first.");
+  if (!showName || !judgeName || !className) {
+    alert("Please select a show, enter judge name, and select class first.");
     return;
   }
 
@@ -125,6 +155,7 @@ function saveBird() {
   const bird = {
     show: showName,
     judge: judgeName,
+    class: className,
     id: birdId,
     variety: varietyInput.toUpperCase(),
     head: Number(document.getElementById('head').value),
@@ -140,32 +171,30 @@ function saveBird() {
   birds.push(bird);
   localStorage.setItem('birds', JSON.stringify(birds));
 
-  // Optional: clear Bird ID for next entry
+  // clear bird id for speed
   document.getElementById('birdId').value = "";
 
   alert("Bird saved!");
 }
 
-// ---------- RESULTS ----------
+// ---------- RESULTS (filtered by show+judge+class) ----------
 function showResults() {
   const resultsDiv = document.getElementById('results');
   resultsDiv.style.display = "block";
 
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
+  const className = localStorage.getItem("currentClass") || "";
 
   let birds = JSON.parse(localStorage.getItem('birds')) || [];
-
-  // Show only birds for this show + judge
-  birds = birds.filter(b => b.show === showName && b.judge === judgeName);
+  birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
 
   if (birds.length === 0) {
-    resultsDiv.innerHTML = "<p>No birds saved yet for this show/judge.</p>";
+    resultsDiv.innerHTML = "<p>No birds saved yet for this show/judge/class.</p>";
     return;
   }
 
   const grouped = {};
-
   birds.forEach(bird => {
     if (!grouped[bird.variety]) grouped[bird.variety] = [];
     grouped[bird.variety].push(bird);
@@ -175,12 +204,10 @@ function showResults() {
 
   Object.keys(grouped).forEach(variety => {
     grouped[variety].sort((a, b) => Number(b.total) - Number(a.total));
-
     html += `<h3>${variety} (Total entries: ${grouped[variety].length})</h3>`;
 
     grouped[variety].forEach((bird, index) => {
       let style = "";
-
       if (index === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
       else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
       else if (index === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
@@ -194,43 +221,45 @@ function showResults() {
 
 // ---------- RESET ----------
 function resetShow() {
-  if (confirm("Start a new show? This will delete all birds for ALL shows on this device.")) {
+  if (confirm("Start a new show? This will delete ALL saved birds on this device.")) {
     localStorage.removeItem('birds');
     document.getElementById('results').innerHTML = "";
     alert("New show started.");
   }
 }
 
-// ---------- EXPORT ----------
+// ---------- EXPORT (filtered by show+judge+class) ----------
 function exportCSV() {
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
+  const className = localStorage.getItem("currentClass") || "";
 
   let birds = JSON.parse(localStorage.getItem('birds')) || [];
-  birds = birds.filter(b => b.show === showName && b.judge === judgeName);
+  birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
 
   if (birds.length === 0) {
-    alert("No data to export for this show/judge.");
+    alert("No data to export for this show/judge/class.");
     return;
   }
 
-  let csv = "Show,Judge,Bird ID,Variety,Head,Body,Legs,Colour,Condition,Total,Timestamp\n";
+  let csv = "Show,Judge,Class,Bird ID,Variety,Head,Body,Legs,Colour,Condition,Total,Timestamp\n";
 
   birds.forEach(bird => {
-    csv += `"${bird.show}","${bird.judge}",${bird.id},${bird.variety},${bird.head},${bird.body},${bird.legs},${bird.colour},${bird.condition},${bird.total},${bird.timestamp}\n`;
+    csv += `"${bird.show}","${bird.judge}","${bird.class}",${bird.id},${bird.variety},${bird.head},${bird.body},${bird.legs},${bird.colour},${bird.condition},${bird.total},${bird.timestamp}\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
 
-  const a = document.createElement("a");
-  a.href = url;
-
-  // filename includes show + judge
   const safeShow = showName.replace(/[^a-z0-9]+/gi, "_");
   const safeJudge = judgeName.replace(/[^a-z0-9]+/gi, "_");
-  a.download = `orpington_results_${safeShow}_${safeJudge}.csv`;
+  const safeClass = className.replace(/[^a-z0-9]+/gi, "_");
 
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `orpington_results_${safeShow}_${safeJudge}_${safeClass}.csv`;
   a.click();
+
   URL.revokeObjectURL(url);
 }
+
