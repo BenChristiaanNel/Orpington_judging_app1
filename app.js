@@ -48,8 +48,16 @@ function saveShowAndContinue() {
   const label = document.getElementById("showNameDisplay");
   if (label) label.textContent = showName;
 
-  document.getElementById("showScreen").style.display = "none";
-  document.getElementById("judgingScreen").style.display = "block";
+ document.getElementById("showScreen").style.display = "none";
+document.getElementById("judgeScreen").style.display = "flex";
+document.getElementById("judgingScreen").style.display = "none";
+
+lockScroll(true);
+
+// Pre-fill last judge name if saved
+const savedJudge = localStorage.getItem("currentJudge") || "";
+const j = document.getElementById("judgeName");
+if (j && savedJudge) j.value = savedJudge;
 
   // allow scroll in judging screen
   lockScroll(false);
