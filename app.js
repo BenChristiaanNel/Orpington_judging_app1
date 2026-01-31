@@ -1,6 +1,8 @@
+// Get sliders + total display
 const sliders = document.querySelectorAll('input[type="range"]');
 const totalDisplay = document.getElementById('total');
 
+// Update total when sliders move
 sliders.forEach(slider => {
   slider.addEventListener('input', calculateTotal);
 });
@@ -13,6 +15,13 @@ function calculateTotal() {
   totalDisplay.innerText = total;
 }
 
+// Intro -> judging
+function startApp() {
+  document.getElementById("introScreen").style.display = "none";
+  document.getElementById("judgingScreen").style.display = "block";
+}
+
+// Save bird entry
 function saveBird() {
   const birdId = document.getElementById('birdId').value.trim();
   const varietyInput = document.getElementById('variety').value.trim();
@@ -40,6 +49,7 @@ function saveBird() {
   alert("Bird saved!");
 }
 
+// View results: group by variety, show entry count, highlight top 3
 function showResults() {
   const resultsDiv = document.getElementById('results');
   resultsDiv.style.display = "block";
@@ -62,27 +72,27 @@ function showResults() {
   let html = "";
 
   Object.keys(grouped).forEach(variety => {
-    // Sort birds numerically by total descending
+    // Sort numerically by total descending
     grouped[variety].sort((a, b) => Number(b.total) - Number(a.total));
 
-    // Display variety and total entries
+    // Show entry count per variety
     html += `<h3>${variety} (Total entries: ${grouped[variety].length})</h3>`;
 
     grouped[variety].forEach((bird, index) => {
-  let highlight = "";
+      let style = "";
 
-  if (index === 0) highlight = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;"; // Gold
-  else if (index === 1) highlight = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;"; // Silver
-  else if (index === 2) highlight = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;"; // Bronze
+      if (index === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;"; // Gold
+      else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;"; // Silver
+      else if (index === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;"; // Bronze
 
-  html += `<p style="${highlight}">${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong></p>`;
-});
+      html += `<p style="${style}">${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong></p>`;
+    });
+  });
 
   resultsDiv.innerHTML = html;
 }
 
-
-
+// Reset / new show
 function resetShow() {
   if (confirm("Start a new show? This will delete all birds.")) {
     localStorage.removeItem('birds');
@@ -91,6 +101,7 @@ function resetShow() {
   }
 }
 
+// Export to CSV
 function exportCSV() {
   let birds = JSON.parse(localStorage.getItem('birds')) || [];
 
@@ -115,3 +126,4 @@ function exportCSV() {
 
   URL.revokeObjectURL(url);
 }
+
