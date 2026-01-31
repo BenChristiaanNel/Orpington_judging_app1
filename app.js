@@ -1,29 +1,29 @@
+// ---------- FORCE CORRECT START SCREEN (prevents weird cached states) ----------
 window.addEventListener("load", () => {
-  // Always start at intro screen
   const intro = document.getElementById("introScreen");
   const show = document.getElementById("showScreen");
-  const judge = document.getElementById("judgingScreen");
+  const judge = document.getElementById("judgeScreen");
+  const judging = document.getElementById("judgingScreen");
 
   if (intro) intro.style.display = "flex";
   if (show) show.style.display = "none";
   if (judge) judge.style.display = "none";
+  if (judging) judging.style.display = "none";
 
+  // lock scroll on full-screen pages
   document.body.style.overflow = "hidden";
 });
 
-
-// --------- helpers ----------
+// Helper to lock/unlock scrolling (intro/show/judge locked, judging unlocked)
 function lockScroll(locked) {
   document.body.style.overflow = locked ? "hidden" : "auto";
 }
 
-// --------- intro flow ----------
+// ---------- INTRO -> SHOW SELECTION ----------
 function startApp() {
   document.getElementById("introScreen").style.display = "none";
-
-  const showScreen = document.getElementById("showScreen");
-  showScreen.style.display = "flex";
-
+  document.getElementById("showScreen").style.display = "flex";
+  document.getElementById("judgeScreen").style.display = "none";
   document.getElementById("judgingScreen").style.display = "none";
 
   lockScroll(true);
@@ -34,6 +34,7 @@ function startApp() {
   if (sel && savedShow) sel.value = savedShow;
 }
 
+// ---------- SHOW -> JUDGE ----------
 function saveShowAndContinue() {
   const sel = document.getElementById("showSelect");
   const showName = (sel ? sel.value : "").trim();
@@ -45,31 +46,49 @@ function saveShowAndContinue() {
 
   localStorage.setItem("currentShow", showName);
 
-  const label = document.getElementById("showNameDisplay");
-  if (label) label.textContent = showName;
+  // show name on judging screen
+  const showLabel = document.getElementById("showNameDisplay");
+  if (showLabel) showLabel.textContent = showName;
 
- document.getElementById("showScreen").style.display = "none";
-document.getElementById("judgeScreen").style.display = "flex";
-document.getElementById("judgingScreen").style.display = "none";
+  document.getElementById("showScreen").style.display = "none";
+  document.getElementById("judgeScreen").style.display = "flex";
+  document.getElementById("judgingScreen").style.display = "none";
 
-lockScroll(true);
+  lockScroll(true);
 
-// Pre-fill last judge name if saved
-const savedJudge = localStorage.getItem("currentJudge") || "";
-const j = document.getElementById("judgeName");
-if (j && savedJudge) j.value = savedJudge;
-
-  // allow scroll in judging screen
-  lockScroll(false);
+  // Pre-fill last judge name
+  const savedJudge = localStorage.getItem("currentJudge") || "";
+  const j = document.getElementById("judgeName");
+  if (j) j.value = savedJudge;
 }
 
-// Keep intro as first screen on load (no auto-jump yet)
-window.addEventListener("load", () => {
-  lockScroll(true);
-});
+// ---------- JUDGE -> JUDGING ----------
+function saveJudgeAndContinue() {
+  const j = document.getElementById("judgeName");
+  const judgeName = (j ? j.value : "").trim();
 
+  if (!judgeName) {
+    alert("Please enter the judge name.");
+    return;
+  }
 
-// --------- scoring ----------
+  localStorage.setItem("currentJudge", judgeName);
+
+  // show judge on judging screen
+  const judgeLabel = document.getElementById("judgeNameDisplay");
+  if (judgeLabel) judgeLabel.textContent = judgeName;
+
+  document.getElementById("judgeScreen").style.display = "none";
+  document.getElementById("judgingScreen").style.display = "block";
+
+  // allow scrolling on judging screen
+  lockScroll(false);
+
+  // Make sure totals start correct
+  calculateTotal();
+}
+
+// ---------- SCORING ----------
 const sliders = document.querySelectorAll('input[type="range"]');
 const totalDisplay = document.getElementById('total');
 
@@ -85,11 +104,18 @@ function calculateTotal() {
   totalDisplay.innerText = total;
 }
 
-
-// --------- save bird ----------
+// ---------- SAVE BIRD ----------
 function saveBird() {
   const birdId = document.getElementById('birdId').value.trim();
   const varietyInput = document.getElementById('variety').value.trim();
+
+  const showName = localStorage.getItem("currentShow") || "";
+  const judgeName = localStorage.getItem("currentJudge") || "";
+
+  if (!showName || !judgeName) {
+    alert("Please select a show and enter judge name first.");
+    return;
+  }
 
   if (birdId === "" || varietyInput === "") {
     alert("Please enter Bird ID and Variety");
@@ -97,6 +123,8 @@ function saveBird() {
   }
 
   const bird = {
+    show: showName,
+    judge: judgeName,
     id: birdId,
     variety: varietyInput.toUpperCase(),
     head: Number(document.getElementById('head').value),
@@ -104,26 +132,35 @@ function saveBird() {
     legs: Number(document.getElementById('legs').value),
     colour: Number(document.getElementById('colour').value),
     condition: Number(document.getElementById('condition').value),
-    total: Number(totalDisplay.innerText)
+    total: Number(totalDisplay.innerText),
+    timestamp: new Date().toISOString()
   };
 
   let birds = JSON.parse(localStorage.getItem('birds')) || [];
   birds.push(bird);
   localStorage.setItem('birds', JSON.stringify(birds));
 
+  // Optional: clear Bird ID for next entry
+  document.getElementById('birdId').value = "";
+
   alert("Bird saved!");
 }
 
-
-// --------- results ----------
+// ---------- RESULTS ----------
 function showResults() {
   const resultsDiv = document.getElementById('results');
   resultsDiv.style.display = "block";
 
+  const showName = localStorage.getItem("currentShow") || "";
+  const judgeName = localStorage.getItem("currentJudge") || "";
+
   let birds = JSON.parse(localStorage.getItem('birds')) || [];
 
+  // Show only birds for this show + judge
+  birds = birds.filter(b => b.show === showName && b.judge === judgeName);
+
   if (birds.length === 0) {
-    resultsDiv.innerHTML = "<p>No birds saved yet.</p>";
+    resultsDiv.innerHTML = "<p>No birds saved yet for this show/judge.</p>";
     return;
   }
 
@@ -155,32 +192,32 @@ function showResults() {
   resultsDiv.innerHTML = html;
 }
 
-
-// --------- reset ----------
+// ---------- RESET ----------
 function resetShow() {
-  if (confirm("Start a new show? This will delete all birds.")) {
+  if (confirm("Start a new show? This will delete all birds for ALL shows on this device.")) {
     localStorage.removeItem('birds');
     document.getElementById('results').innerHTML = "";
     alert("New show started.");
   }
 }
 
-
-// --------- export ----------
+// ---------- EXPORT ----------
 function exportCSV() {
+  const showName = localStorage.getItem("currentShow") || "";
+  const judgeName = localStorage.getItem("currentJudge") || "";
+
   let birds = JSON.parse(localStorage.getItem('birds')) || [];
+  birds = birds.filter(b => b.show === showName && b.judge === judgeName);
 
   if (birds.length === 0) {
-    alert("No data to export.");
+    alert("No data to export for this show/judge.");
     return;
   }
 
-  const showName = localStorage.getItem("currentShow") || "";
-
-  let csv = "Show,Bird ID,Variety,Head,Body,Legs,Colour,Condition,Total\n";
+  let csv = "Show,Judge,Bird ID,Variety,Head,Body,Legs,Colour,Condition,Total,Timestamp\n";
 
   birds.forEach(bird => {
-    csv += `${showName},${bird.id},${bird.variety},${bird.head},${bird.body},${bird.legs},${bird.colour},${bird.condition},${bird.total}\n`;
+    csv += `"${bird.show}","${bird.judge}",${bird.id},${bird.variety},${bird.head},${bird.body},${bird.legs},${bird.colour},${bird.condition},${bird.total},${bird.timestamp}\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv" });
@@ -188,8 +225,12 @@ function exportCSV() {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "orpington_judging_results.csv";
-  a.click();
 
+  // filename includes show + judge
+  const safeShow = showName.replace(/[^a-z0-9]+/gi, "_");
+  const safeJudge = judgeName.replace(/[^a-z0-9]+/gi, "_");
+  a.download = `orpington_results_${safeShow}_${safeJudge}.csv`;
+
+  a.click();
   URL.revokeObjectURL(url);
 }
