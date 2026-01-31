@@ -199,8 +199,21 @@ function saveClassAndContinue() {
 
 function selectColour(colourKey) {
   localStorage.setItem("currentColour", colourKey);
-  document.getElementById("colourSelectedDisplay").textContent = COLOUR_LABELS[colourKey] || colourKey;
+
+  const disp = document.getElementById("colourSelectedDisplay");
+  if (disp) disp.textContent = COLOUR_LABELS[colourKey] || colourKey;
+
+  // ✅ Auto-advance to judging after selecting a colour
+  // Small delay so the selection text updates before switching screens
+  setTimeout(() => {
+    // Only auto-advance if we are currently on the colour screen
+    const colourScreen = document.getElementById("colourScreen");
+    if (colourScreen && colourScreen.style.display !== "none") {
+      saveColourAndContinue();
+    }
+  }, 120);
 }
+
 
 function saveColourAndContinue() {
   const colourKey = localStorage.getItem("currentColour") || "";
