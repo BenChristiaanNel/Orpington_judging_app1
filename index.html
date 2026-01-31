@@ -9,7 +9,24 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="introScreen" style="text-align:center; padding:20px;">
+  <h1>Orpington Judging App</h1>
 
+  <img src="orpington.png"
+       alt="Orpington"
+       style="max-width:90%; border-radius:14px; margin:18px 0;">
+
+  <p style="font-size:16px;">
+    Offline judging • Auto totals • Export results
+  </p>
+
+  <button onclick="startApp()"
+          style="padding:12px 18px; font-size:16px; border-radius:10px;">
+    Start Judging
+  </button>
+</div>
+
+  <div id="judgingScreen" style="display:none;">
   <h1>🐔 Orpington Judging</h1>
 
   <div class="card">
@@ -47,7 +64,7 @@
     <div id="results" style="display:none; margin-top:20px;"></div>
 
   </div>
-
+    
   <script src="app.js"></script>
 </body>
 </html>
