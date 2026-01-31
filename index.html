@@ -22,8 +22,10 @@
 <body>
 
   <!-- ✅ INTRO SCREEN -->
-  <div id="introScreen"
+  <!-- ✅ SHOW SELECTION SCREEN -->
+<div id="showScreen"
      style="
+       display:none;
        text-align:center;
        padding:40px 20px;
        height:100vh;
@@ -33,22 +35,30 @@
        flex-direction:column;
        justify-content:center;
        align-items:center;
+       overflow:hidden;
      ">
 
-  <h1 style="font-size:42px; font-weight:800; margin-bottom:24px;">
-    Orpington Show Judging
+  <h1 style="font-size:34px; font-weight:800; margin-bottom:22px;">
+    Select Show
   </h1>
 
-  <img src="orpington.png"
-       alt="Orpington"
-       style="
-         max-width:70%;
-         border-radius:18px;
-         margin-bottom:30px;
-         box-shadow:0 10px 25px rgba(0,0,0,0.4);
-       ">
+  <select id="showSelect"
+          style="
+            width:min(520px, 90%);
+            padding:16px 14px;
+            font-size:18px;
+            border-radius:12px;
+            border:none;
+            outline:none;
+            margin-bottom:22px;
+          ">
+    <option value="">-- Choose a show --</option>
+    <option value="AvioMed Young Chicken Show 2026">AvioMed Young Chicken Show 2026</option>
+    <option value="AvioMed Nationals 2026">AvioMed Nationals 2026</option>
+    <option value="AvioMed Orpington Show 2026">AvioMed Orpington Show 2026</option>
+  </select>
 
-  <button onclick="startApp()"
+  <button onclick="saveShowAndContinue()"
           style="
             padding:22px 36px;
             font-size:22px;
@@ -60,16 +70,21 @@
             cursor:pointer;
             box-shadow:0 6px 15px rgba(0,0,0,0.35);
           ">
-    Start Judging
+    Next
   </button>
 
 </div>
+
 
 
   <!-- ✅ JUDGING SCREEN (hidden until Start) -->
   <div id="judgingScreen" style="display:none;">
 
     <h1>🐔 Orpington Judging</h1>
+    <p style="margin-top:-10px; font-size:16px; opacity:0.9;">
+  Show: <strong><span id="showNameDisplay">Not selected</span></strong>
+</p>
+
 
     <div class="card">
       <label>Bird ID</label>
