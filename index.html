@@ -146,57 +146,72 @@
   </div>
 
   <!-- ✅ COLOUR SCREEN -->
-  <div id="colourScreen"
-       class="screen-blue"
-       style="display:none; justify-content:flex-start; padding-top:22px;">
+ <!-- ✅ COLOUR SCREEN (fixed scrolling) -->
+<div id="colourScreen"
+     style="
+       display:none;
+       height:100vh;
+       background:#1e3a8a;
+       color:white;
+       padding:22px 16px 16px;
+       box-sizing:border-box;
 
-    <h1 style="font-size:34px; font-weight:800; margin:0 0 10px;">Select Colour</h1>
+       display:flex;
+       flex-direction:column;
+       align-items:center;
+       justify-content:flex-start;
+       overflow:hidden;
+     ">
 
-    <p style="margin:0 0 14px; font-size:16px; opacity:0.9;">
-      Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
-    </p>
+  <h1 style="font-size:34px; font-weight:800; margin:0 0 10px;">Select Colour</h1>
 
-    <div
-      style="
-        width:min(760px, 95%);
-        flex: 1;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        touch-action: pan-y;
-        padding:10px;
-        border-radius:14px;
-        background: rgba(255,255,255,0.08);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
-      "
-    >
-      <div class="grid-wrap" style="width:100%;">
-        <button class="pill" onclick="selectColour('BLACK')">Black</button>
-        <button class="pill" onclick="selectColour('BLUE')">Blue</button>
-        <button class="pill" onclick="selectColour('BUFF')">Buff</button>
-        <button class="pill" onclick="selectColour('WHITE')">White</button>
-        <button class="pill" onclick="selectColour('SPLASH')">Splash</button>
-        <button class="pill" onclick="selectColour('CHOCOLATE')">Chocolate</button>
-        <button class="pill" onclick="selectColour('LAVENDER')">Lavender</button>
-        <button class="pill" onclick="selectColour('JUBILEE')">Jubilee</button>
+  <p style="margin:0 0 14px; font-size:16px; opacity:0.9;">
+    Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
+  </p>
 
-        <button class="pill" onclick="selectColour('CUCKOO')">Cuckoo</button>
-        <button class="pill" onclick="selectColour('PARTRIDGE')">Partridge</button>
-        <button class="pill" onclick="selectColour('SILVER_LACED')">Silver Laced</button>
-        <button class="pill" onclick="selectColour('GOLD_LACED')">Gold Laced</button>
+  <!-- ✅ This is the scroll box -->
+  <div
+    id="colourScrollBox"
+    style="
+      width:min(760px, 95%);
+      flex:1;
+      min-height:0;
+      overflow-y:auto;
+      -webkit-overflow-scrolling: touch;
+      padding:10px;
+      border-radius:14px;
+      background: rgba(255,255,255,0.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+    "
+  >
+    <div class="grid-wrap" style="width:100%;">
+      <button class="pill" onclick="selectColour('BLACK')">Black</button>
+      <button class="pill" onclick="selectColour('BLUE')">Blue</button>
+      <button class="pill" onclick="selectColour('BUFF')">Buff</button>
+      <button class="pill" onclick="selectColour('WHITE')">White</button>
+      <button class="pill" onclick="selectColour('SPLASH')">Splash</button>
+      <button class="pill" onclick="selectColour('CHOCOLATE')">Chocolate</button>
+      <button class="pill" onclick="selectColour('LAVENDER')">Lavender</button>
+      <button class="pill" onclick="selectColour('JUBILEE')">Jubilee</button>
 
-        <button class="pill" onclick="selectColour('RED')">Red</button>
-        <button class="pill" onclick="selectColour('ISABEL')">Isabel</button>
-        <button class="pill" onclick="selectColour('CRELE')">Crele</button>
-      </div>
-    </div>
+      <button class="pill" onclick="selectColour('CUCKOO')">Cuckoo</button>
+      <button class="pill" onclick="selectColour('PARTRIDGE')">Partridge</button>
+      <button class="pill" onclick="selectColour('SILVER_LACED')">Silver Laced</button>
+      <button class="pill" onclick="selectColour('GOLD_LACED')">Gold Laced</button>
 
-    <!-- Backup Next button -->
-    <div style="width:min(760px, 95%); margin-top:14px; padding-top:12px; background:#1e3a8a;">
-      <button class="btn-yellow" onclick="saveColourAndContinue()" style="width: min(520px, 90%);">
-        Next
-      </button>
+      <button class="pill" onclick="selectColour('RED')">Red</button>
+      <button class="pill" onclick="selectColour('ISABEL')">Isabel</button>
+      <button class="pill" onclick="selectColour('CRELE')">Crele</button>
     </div>
   </div>
+
+  <!-- Backup Next button -->
+  <div style="width:min(760px, 95%); margin-top:14px;">
+    <button class="btn-yellow" onclick="saveColourAndContinue()" style="width: min(520px, 90%);">
+      Next
+    </button>
+  </div>
+</div>
 
   <!-- ✅ JUDGING SCREEN -->
   <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff;">
@@ -292,6 +307,6 @@
   </div>
 
   <!-- ✅ cache-bust -->
-  <script src="app.js?v=40"></script>
+  <script src="app.js?v=41"></script>
 </body>
 </html>
