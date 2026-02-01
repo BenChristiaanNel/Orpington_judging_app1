@@ -21,12 +21,23 @@
       border-radius:14px; background:#ffffff; color:#1e3a8a;
       border:none; cursor:pointer; box-shadow:0 6px 15px rgba(0,0,0,0.25);
     }
+
+    /* ✅ FIXED centering on all blue screens */
     .screen-blue{
-      text-align:center; padding:40px 20px; height:100vh;
-      background:#1e3a8a; color:white;
-      display:flex; align-items:center; justify-content:center; flex-direction:column;
+      text-align:center;
+      min-height:100vh;
+      padding:24px 16px;
+      background:#1e3a8a;
+      color:white;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+
       overflow:hidden;
     }
+
     .grid-wrap{
       display:flex; flex-wrap:wrap; gap:14px; justify-content:center;
       width:min(760px, 95%);
@@ -86,17 +97,17 @@
 
   <!-- ✅ INTRO SCREEN -->
   <div id="introScreen" class="screen-blue" style="display:flex;">
-    <h1 style="font-size:42px; font-weight:800; margin-bottom:24px;">Orpington Show Judging</h1>
+    <h1 style="font-size:42px; font-weight:800; margin-bottom:18px;">Orpington Show Judging</h1>
 
     <img src="orpington.png" alt="Orpington"
-      style="max-width:70%; border-radius:18px; margin-bottom:30px; box-shadow:0 10px 25px rgba(0,0,0,0.4);" />
+      style="max-width:72%; border-radius:18px; margin:18px 0 26px; box-shadow:0 10px 25px rgba(0,0,0,0.4);" />
 
     <button class="btn-yellow" onclick="startApp()">Start Judging</button>
   </div>
 
   <!-- ✅ SHOW SCREEN -->
   <div id="showScreen" class="screen-blue" style="display:none;">
-    <h1 style="font-size:34px; font-weight:800; margin-bottom:22px;">Select Show</h1>
+    <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Select Show</h1>
 
     <select id="showSelect" class="input-wide">
       <option value="">-- Choose a show --</option>
@@ -110,7 +121,7 @@
 
   <!-- ✅ JUDGE SCREEN -->
   <div id="judgeScreen" class="screen-blue" style="display:none;">
-    <h1 style="font-size:34px; font-weight:800; margin-bottom:22px;">Judge Name</h1>
+    <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Judge Name</h1>
 
     <input id="judgeName" class="input-wide" type="text" placeholder="Enter judge name" />
 
@@ -119,7 +130,7 @@
 
   <!-- ✅ CLASS SCREEN -->
   <div id="classScreen" class="screen-blue" style="display:none;">
-    <h1 style="font-size:34px; font-weight:800; margin-bottom:22px;">Select Class</h1>
+    <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Select Class</h1>
 
     <div class="grid-wrap">
       <button class="pill" onclick="selectClass('PULLET')">Pullet</button>
@@ -138,7 +149,7 @@
   <!-- ✅ COLOUR SCREEN (tap colour auto-continues) -->
   <div id="colourScreen"
        class="screen-blue"
-       style="display:none; justify-content:flex-start; padding-top:28px;">
+       style="display:none; justify-content:flex-start; padding-top:22px;">
 
     <h1 style="font-size:34px; font-weight:800; margin:0 0 10px;">Select Colour</h1>
 
@@ -188,8 +199,8 @@
     </div>
   </div>
 
-  <!-- ✅ JUDGING SCREEN -->
-  <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+  <!-- ✅ JUDGING SCREEN (soft blue background) -->
+  <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff;">
     <h1>🐔 Orpington Judging</h1>
 
     <p class="subline">Show: <strong><span id="showNameDisplay">Not selected</span></strong></p>
@@ -199,15 +210,15 @@
 
     <div class="card">
 
-      <!-- ✅ Back buttons -->
+      <!-- ✅ Back buttons (coloured) -->
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
         <button type="button" onclick="backToClass()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+          style="padding:12px 14px; border-radius:12px; border:none; background:#1e3a8a; color:#ffffff; font-weight:900; cursor:pointer;">
           ← Change Class (Sex)
         </button>
 
         <button type="button" onclick="backToColour()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+          style="padding:12px 14px; border-radius:12px; border:none; background:#0f766e; color:#ffffff; font-weight:900; cursor:pointer;">
           ← Change Colour
         </button>
       </div>
@@ -250,12 +261,9 @@
 
       <h2 style="margin-top:16px;">Total: <span id="total">0</span></h2>
 
+      <!-- ✅ ONLY these two buttons on judging page -->
       <button onclick="saveBird()">Save Bird</button>
       <button onclick="showResults()">View Results</button>
-      <button onclick="resetShow()">New Show</button>
-      <button onclick="exportCSV()">Export Results</button>
-
-      <!-- NOTE: Results now show on Results Screen -->
     </div>
   </div>
 
@@ -290,7 +298,7 @@
   </div>
 
   <!-- ✅ cache-bust -->
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=30"></script>
 </body>
 </html>
 
