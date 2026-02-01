@@ -22,7 +22,7 @@
       border:none; cursor:pointer; box-shadow:0 6px 15px rgba(0,0,0,0.25);
     }
 
-    /* ✅ FIXED centering on all blue screens */
+    /* ✅ centered blue screens */
     .screen-blue{
       text-align:center;
       min-height:100vh;
@@ -128,7 +128,7 @@
     <button class="btn-yellow" onclick="saveJudgeAndContinue()">Next</button>
   </div>
 
-  <!-- ✅ CLASS SCREEN -->
+  <!-- ✅ CLASS SCREEN (auto-next on tap) -->
   <div id="classScreen" class="screen-blue" style="display:none;">
     <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Select Class</h1>
 
@@ -142,11 +142,10 @@
     <p style="margin-top:18px; font-size:18px;">
       Selected: <strong><span id="classSelectedDisplay">None</span></strong>
     </p>
-
-    <button class="btn-white" onclick="saveClassAndContinue()">Next</button>
+    <!-- ❌ no Next button here -->
   </div>
 
-  <!-- ✅ COLOUR SCREEN (tap colour auto-continues) -->
+  <!-- ✅ COLOUR SCREEN -->
   <div id="colourScreen"
        class="screen-blue"
        style="display:none; justify-content:flex-start; padding-top:22px;">
@@ -191,7 +190,7 @@
       </div>
     </div>
 
-    <!-- Backup Next button (optional) -->
+    <!-- Backup Next button -->
     <div style="width:min(760px, 95%); margin-top:14px; padding-top:12px; background:#1e3a8a;">
       <button class="btn-yellow" onclick="saveColourAndContinue()" style="width: min(520px, 90%);">
         Next
@@ -199,7 +198,7 @@
     </div>
   </div>
 
-  <!-- ✅ JUDGING SCREEN (soft blue background) -->
+  <!-- ✅ JUDGING SCREEN -->
   <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff;">
     <h1>🐔 Orpington Judging</h1>
 
@@ -209,8 +208,6 @@
     <p class="subline">Colour: <strong><span id="colourNameDisplay">Not selected</span></strong></p>
 
     <div class="card">
-
-      <!-- ✅ Back buttons (coloured) -->
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
         <button type="button" onclick="backToClass()"
           style="padding:12px 14px; border-radius:12px; border:none; background:#1e3a8a; color:#ffffff; font-weight:900; cursor:pointer;">
@@ -226,14 +223,12 @@
       <label>Bird ID</label>
       <input type="text" id="birdId" />
 
-      <!-- ✅ SA Template -->
       <div style="margin-top:14px;">
         <h2 style="margin-bottom:6px;">SA Scale of Points</h2>
         <div id="templateName" class="muted" style="margin-bottom:10px;"></div>
         <div id="scoringContainer"></div>
       </div>
 
-      <!-- ✅ Disqualification -->
       <div class="dq-box">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
           <label style="margin:0;">
@@ -255,13 +250,12 @@
         </div>
       </div>
 
-      <!-- ✅ Comments -->
       <label style="margin-top:14px;">Judge Comments</label>
       <textarea id="commentBox" rows="3" placeholder="Optional comment..."></textarea>
 
       <h2 style="margin-top:16px;">Total: <span id="total">0</span></h2>
 
-      <!-- ✅ ONLY these two buttons on judging page -->
+      <!-- ✅ Only these two buttons -->
       <button onclick="saveBird()">Save Bird</button>
       <button onclick="showResults()">View Results</button>
     </div>
@@ -298,8 +292,6 @@
   </div>
 
   <!-- ✅ cache-bust -->
-  <script src="app.js?v=30"></script>
+  <script src="app.js?v=40"></script>
 </body>
 </html>
-
-
