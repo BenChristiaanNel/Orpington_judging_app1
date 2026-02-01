@@ -1,3 +1,7 @@
+// ===== ADMIN SYNC SETTINGS =====
+const ADMIN_URL = "https://script.google.com/macros/s/AKfycbwYmBDtjn8dc7eOYkczSuy_IvbRZmONpJl_5eAbUo0UIZbV9LZIKMvc1pGVsZrsWDPk/exec";
+const ADMIN_PASSCODE = "testshow"; // must match PASSCODE in Code.gs
+
 // ----------------- HELPERS -----------------
 function lockScroll(locked) {
   document.body.style.overflow = locked ? "hidden" : "auto";
@@ -26,7 +30,81 @@ function showOnly(screenId) {
 window.addEventListener("load", () => {
   showOnly("introScreen");
   lockScroll(true);
+
+  // try to sync any pending uploads if online
+  if (navigator.onLine) {
+    syncPending().catch(() => {});
+  }
 });
+
+// ----------------- DEVICE + SYNC QUEUE -----------------
+function getDeviceId() {
+  let id = localStorage.getItem("deviceId");
+  if (!id) {
+    id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now();
+    localStorage.setItem("deviceId", id);
+  }
+  return id;
+}
+
+function queueForSync(entry) {
+  const pending = JSON.parse(localStorage.getItem("pendingSync") || "[]");
+  pending.push(entry);
+  localStorage.setItem("pendingSync", JSON.stringify(pending));
+}
+
+async function sendEntriesToAdmin(entries) {
+  if (!ADMIN_URL) throw new Error("ADMIN_URL not set");
+
+  const payload = {
+    passcode: ADMIN_PASSCODE,
+    entries
+  };
+
+  // IMPORTANT: CORS-safe "fire and forget"
+  // We don't need to read the response to succeed.
+  // But if the server allows it, we'll try to read it.
+  let res;
+  try {
+    res = await fetch(ADMIN_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    // With no-cors, we can’t read res.json(); treat as success
+    return { ok: true, inserted: entries.length };
+  } catch (e) {
+    throw new Error("upload failed");
+  }
+}
+
+async function syncPending() {
+  const pending = JSON.parse(localStorage.getItem("pendingSync") || "[]");
+  if (pending.length === 0) return { ok: true, inserted: 0 };
+
+  await sendEntriesToAdmin(pending);
+
+  // clear on success
+  localStorage.removeItem("pendingSync");
+  return { ok: true, inserted: pending.length };
+}
+
+// Auto-sync when internet returns
+window.addEventListener("online", () => {
+  syncPending().catch(() => {});
+});
+
+// Manual sync button from Results screen
+function syncNow() {
+  if (!navigator.onLine) {
+    alert("No internet right now. The app will sync automatically when you are online.");
+    return;
+  }
+  syncPending()
+    .then(r => alert("Synced pending birds: " + (r.inserted || 0)))
+    .catch(() => alert("Sync failed. Try again when you have stronger signal."));
+}
 
 // ----------------- COLOURS -----------------
 const COLOUR_LABELS = {
@@ -183,7 +261,7 @@ function saveJudgeAndContinue() {
   document.getElementById("classSelectedDisplay").textContent = savedClass || "None";
 }
 
-// ✅ Tap class = auto-continue
+// ✅ Tap class = auto-continue (no Next button needed)
 function selectClass(className) {
   localStorage.setItem("currentClass", className);
   document.getElementById("classSelectedDisplay").textContent = className;
@@ -277,7 +355,6 @@ function newShowHome() {
 }
 
 // ----------------- SCORING UX FIX -----------------
-// ✅ Stops phone snapping back to Bird ID while sliding
 function blurBirdId() {
   const idEl = document.getElementById("birdId");
   if (idEl && document.activeElement === idEl) {
@@ -467,9 +544,37 @@ function saveBird() {
     timestamp: new Date().toISOString()
   };
 
+  // Save locally
   const birds = JSON.parse(localStorage.getItem("birds") || "[]");
   birds.push(bird);
   localStorage.setItem("birds", JSON.stringify(birds));
+
+  // ✅ Auto-send to Google Sheet (or queue if offline)
+  const deviceId = getDeviceId();
+  const entryKey = `${deviceId}|${bird.show}|${bird.judge}|${bird.class}|${bird.colour}|${bird.id}|${bird.timestamp}`;
+
+  const syncEntry = {
+    entry_key: entryKey,
+    device_id: deviceId,
+    show: bird.show,
+    judge: bird.judge,
+    class: bird.class,
+    colour: bird.colour,
+    bird_id: bird.id,
+    disqualified: bird.disqualified,
+    dq_reason: bird.dqReason,
+    dq_note: bird.dqNote,
+    total: bird.total,
+    scores_json: JSON.stringify(bird.scores || {}),
+    comment: bird.comment,
+    timestamp: bird.timestamp
+  };
+
+  if (navigator.onLine) {
+    sendEntriesToAdmin([syncEntry]).catch(() => queueForSync(syncEntry));
+  } else {
+    queueForSync(syncEntry);
+  }
 
   alert("Bird saved!");
   prepareNextBird();
@@ -505,7 +610,17 @@ function showResults() {
     grouped[b.colour].push(b);
   });
 
-  let html = "";
+  let html = `
+    <div style="margin-bottom:12px;">
+      <button type="button" onclick="syncNow()"
+        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+        Sync Pending to Admin
+      </button>
+      <span style="margin-left:10px; font-weight:800; opacity:0.8;">
+        (offline birds will upload when online)
+      </span>
+    </div>
+  `;
 
   Object.keys(grouped).forEach(colKey => {
     const label = COLOUR_LABELS[colKey] || colKey;
@@ -566,7 +681,7 @@ function exportCSV() {
     const dqReason = (b.dqReason || "").replace(/"/g, '""');
     const dqNote = (b.dqNote || "").replace(/"/g, '""');
 
-    csv += `"${b.show}","${b.judge}","${b.class}","${colourLabel}","${b.id}",${b.disqualified ? "YES":"NO"},"${dqReason}","${dqNote}",${b.total},"${scoresJson}","${comment}",${b.timestamp}\n`;
+    csv += `"${b.show}","${b.judge}","${b.class}","${colourLabel}","${b.id}",${b.disqualified ? "YES":"NO"},"${dqReason}","${dqNote}",${b.total},"${scoresJson}","${comment}","${b.timestamp}"\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv" });
@@ -583,3 +698,4 @@ function exportCSV() {
 
   URL.revokeObjectURL(url);
 }
+
