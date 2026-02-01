@@ -1,6 +1,6 @@
 // ===================== ADMIN SYNC SETTINGS =====================
 const ADMIN_URL = "https://script.google.com/macros/s/AKfycbwRwrJQtL9fG4XJMeNCcfMIuvsnZ2AOkiSulv7d-_If7v0OibV14wGfvEgqp-Ei0E8l/exec";
-const ADMIN_PASSCODE = "AVIOMED2026"; // MUST match PASSCODE in your Code.gs
+const ADMIN_PASSCODE = "AVIOMED2026".trim(); // MUST match PASSCODE in your Code.gs
 
 // ===================== SCREEN CONTROL =====================
 function lockScroll(locked) {
