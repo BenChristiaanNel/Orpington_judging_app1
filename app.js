@@ -1,8 +1,8 @@
-// ===== ADMIN SYNC SETTINGS =====
+// ===================== ADMIN SYNC SETTINGS =====================
 const ADMIN_URL = "https://script.google.com/macros/s/AKfycbwYmBDtjn8dc7eOYkczSuy_IvbRZmONpJl_5eAbUo0UIZbV9LZIKMvc1pGVsZrsWDPk/exec";
-const ADMIN_PASSCODE = "testshow"; // must match PASSCODE in Code.gs
+const ADMIN_PASSCODE = "AVIOMED2026"; // MUST match PASSCODE in your Code.gs
 
-// ----------------- HELPERS -----------------
+// ===================== SCREEN CONTROL =====================
 function lockScroll(locked) {
   document.body.style.overflow = locked ? "hidden" : "auto";
 }
@@ -16,12 +16,7 @@ function showOnly(screenId) {
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-
-    if (id === screenId) {
-      el.style.display = (id === "judgingScreen" || id === "resultsScreen") ? "block" : "flex";
-    } else {
-      el.style.display = "none";
-    }
+    el.style.display = (id === screenId) ? (id === "judgingScreen" || id === "resultsScreen" ? "block" : "flex") : "none";
   });
 
   lockScroll(!(screenId === "judgingScreen" || screenId === "resultsScreen"));
@@ -31,13 +26,17 @@ window.addEventListener("load", () => {
   showOnly("introScreen");
   lockScroll(true);
 
-  // try to sync any pending uploads if online
+  // attempt sync if online
   if (navigator.onLine) {
-    syncPending().catch(() => {});
+    try { syncPending(); } catch(e) {}
   }
 });
 
-// ----------------- DEVICE + SYNC QUEUE -----------------
+window.addEventListener("online", () => {
+  try { syncPending(); } catch(e) {}
+});
+
+// ===================== DEVICE + SYNC QUEUE =====================
 function getDeviceId() {
   let id = localStorage.getItem("deviceId");
   if (!id) {
@@ -53,7 +52,11 @@ function queueForSync(entry) {
   localStorage.setItem("pendingSync", JSON.stringify(pending));
 }
 
-async function sendEntriesToAdmin(entries) {
+/**
+ * Reliable upload (no CORS problems):
+ * Uses navigator.sendBeacon to POST data to Apps Script web app.
+ */
+function sendEntriesToAdmin(entries) {
   if (!ADMIN_URL) throw new Error("ADMIN_URL not set");
 
   const payload = {
@@ -61,57 +64,55 @@ async function sendEntriesToAdmin(entries) {
     entries
   };
 
-  // IMPORTANT: CORS-safe "fire and forget"
-  // We don't need to read the response to succeed.
-  // But if the server allows it, we'll try to read it.
-  let res;
-  try {
-    res = await fetch(ADMIN_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
-    });
-    // With no-cors, we can’t read res.json(); treat as success
-    return { ok: true, inserted: entries.length };
-  } catch (e) {
-    throw new Error("upload failed");
-  }
+  const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=utf-8" });
+  const ok = navigator.sendBeacon(ADMIN_URL, blob);
+  if (!ok) throw new Error("sendBeacon failed");
+
+  return { ok: true, inserted: entries.length };
 }
 
-async function syncPending() {
+function syncPending() {
   const pending = JSON.parse(localStorage.getItem("pendingSync") || "[]");
   if (pending.length === 0) return { ok: true, inserted: 0 };
 
-  await sendEntriesToAdmin(pending);
+  // throws if sendBeacon fails
+  sendEntriesToAdmin(pending);
 
   // clear on success
   localStorage.removeItem("pendingSync");
   return { ok: true, inserted: pending.length };
 }
 
-// Auto-sync when internet returns
-window.addEventListener("online", () => {
-  syncPending().catch(() => {});
-});
-
-// Manual sync button from Results screen
 function syncNow() {
   if (!navigator.onLine) {
-    alert("No internet right now. The app will sync automatically when you are online.");
+    alert("No internet right now. Birds are saved and will sync later.");
     return;
   }
-  syncPending()
-    .then(r => alert("Synced pending birds: " + (r.inserted || 0)))
-    .catch(() => alert("Sync failed. Try again when you have stronger signal."));
+  try {
+    const r = syncPending();
+    alert("Synced pending birds: " + (r.inserted || 0));
+  } catch (e) {
+    alert("Sync failed. Try again when signal is stronger.");
+  }
 }
 
-// ----------------- COLOURS -----------------
+// ===================== COLOUR LIST + GROUPS =====================
 const COLOUR_LABELS = {
-  BLACK:"Black", BLUE:"Blue", BUFF:"Buff", WHITE:"White", SPLASH:"Splash",
-  CHOCOLATE:"Chocolate", LAVENDER:"Lavender", JUBILEE:"Jubilee",
-  CUCKOO:"Cuckoo", PARTRIDGE:"Partridge", SILVER_LACED:"Silver Laced", GOLD_LACED:"Gold Laced",
-  RED:"Red", ISABEL:"Isabel", CRELE:"Crele"
+  BLACK: "Black",
+  BLUE: "Blue",
+  BUFF: "Buff",
+  WHITE: "White",
+  SPLASH: "Splash",
+  CHOCOLATE: "Chocolate",
+  LAVENDER: "Lavender",
+  JUBILEE: "Jubilee",
+  CUCKOO: "Cuckoo",
+  PARTRIDGE: "Partridge",
+  SILVER_LACED: "Silver Laced",
+  GOLD_LACED: "Gold Laced",
+  RED: "Red",
+  ISABEL: "Isabel",
+  CRELE: "Crele"
 };
 
 function saGroupForColour(colourKey) {
@@ -120,7 +121,7 @@ function saGroupForColour(colourKey) {
   return "SA_BUFF_WHITE_OTHER";
 }
 
-// ----------------- SA TEMPLATES -----------------
+// ===================== SA TEMPLATES (100 POINTS) =====================
 const TEMPLATES = {
   SA_BLACK: {
     name: "THE BLACK (SA) — Total 100",
@@ -161,7 +162,7 @@ const TEMPLATES = {
   }
 };
 
-// ----------------- DISQUALIFICATIONS -----------------
+// ===================== DISQUALIFICATION LISTS =====================
 const DQ_GENERAL = [
   "Side spikes on comb",
   "White in ear-lobes",
@@ -223,10 +224,11 @@ function populateDQReasons(colourKey) {
   });
 }
 
-// ----------------- FLOW -----------------
+// ===================== FLOW =====================
 function startApp() {
   showOnly("showScreen");
 
+  // preselect show if saved
   const savedShow = localStorage.getItem("currentShow") || "";
   const sel = document.getElementById("showSelect");
   if (sel && savedShow) sel.value = savedShow;
@@ -238,7 +240,8 @@ function saveShowAndContinue() {
   if (!showName) return alert("Please choose a show.");
 
   localStorage.setItem("currentShow", showName);
-  document.getElementById("showNameDisplay").textContent = showName;
+  const lbl = document.getElementById("showNameDisplay");
+  if (lbl) lbl.textContent = showName;
 
   showOnly("judgeScreen");
 
@@ -253,24 +256,25 @@ function saveJudgeAndContinue() {
   if (!judgeName) return alert("Please enter the judge name.");
 
   localStorage.setItem("currentJudge", judgeName);
-  document.getElementById("judgeNameDisplay").textContent = judgeName;
+  const lbl = document.getElementById("judgeNameDisplay");
+  if (lbl) lbl.textContent = judgeName;
 
   showOnly("classScreen");
 
   const savedClass = localStorage.getItem("currentClass") || "";
-  document.getElementById("classSelectedDisplay").textContent = savedClass || "None";
+  const cd = document.getElementById("classSelectedDisplay");
+  if (cd) cd.textContent = savedClass || "None";
 }
 
-// ✅ Tap class = auto-continue (no Next button needed)
+// Tap class = auto-next
 function selectClass(className) {
   localStorage.setItem("currentClass", className);
-  document.getElementById("classSelectedDisplay").textContent = className;
+  const cd = document.getElementById("classSelectedDisplay");
+  if (cd) cd.textContent = className;
 
   setTimeout(() => {
-    const classScreen = document.getElementById("classScreen");
-    if (classScreen && classScreen.style.display !== "none") {
-      saveClassAndContinue();
-    }
+    const cs = document.getElementById("classScreen");
+    if (cs && cs.style.display !== "none") saveClassAndContinue();
   }, 120);
 }
 
@@ -278,27 +282,25 @@ function saveClassAndContinue() {
   const className = localStorage.getItem("currentClass") || "";
   if (!className) return alert("Please select a class first.");
 
-  document.getElementById("classNameDisplay").textContent = className;
+  const lbl = document.getElementById("classNameDisplay");
+  if (lbl) lbl.textContent = className;
 
   showOnly("colourScreen");
 
   const savedColour = localStorage.getItem("currentColour") || "";
-  document.getElementById("colourSelectedDisplay").textContent =
-    savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
+  const cd = document.getElementById("colourSelectedDisplay");
+  if (cd) cd.textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
 }
 
-// ✅ Tap colour = auto-continue
+// Tap colour = auto-next
 function selectColour(colourKey) {
   localStorage.setItem("currentColour", colourKey);
-
-  const disp = document.getElementById("colourSelectedDisplay");
-  if (disp) disp.textContent = COLOUR_LABELS[colourKey] || colourKey;
+  const cd = document.getElementById("colourSelectedDisplay");
+  if (cd) cd.textContent = COLOUR_LABELS[colourKey] || colourKey;
 
   setTimeout(() => {
-    const colourScreen = document.getElementById("colourScreen");
-    if (colourScreen && colourScreen.style.display !== "none") {
-      saveColourAndContinue();
-    }
+    const cs = document.getElementById("colourScreen");
+    if (cs && cs.style.display !== "none") saveColourAndContinue();
   }, 120);
 }
 
@@ -306,7 +308,8 @@ function saveColourAndContinue() {
   const colourKey = localStorage.getItem("currentColour") || "";
   if (!colourKey) return alert("Please select a colour first.");
 
-  document.getElementById("colourNameDisplay").textContent = COLOUR_LABELS[colourKey] || colourKey;
+  const lbl = document.getElementById("colourNameDisplay");
+  if (lbl) lbl.textContent = COLOUR_LABELS[colourKey] || colourKey;
 
   renderTemplateForColour(colourKey);
   resetDQUI();
@@ -324,14 +327,15 @@ function saveColourAndContinue() {
 function backToClass() {
   showOnly("classScreen");
   const savedClass = localStorage.getItem("currentClass") || "";
-  document.getElementById("classSelectedDisplay").textContent = savedClass || "None";
+  const cd = document.getElementById("classSelectedDisplay");
+  if (cd) cd.textContent = savedClass || "None";
 }
 
 function backToColour() {
   showOnly("colourScreen");
   const savedColour = localStorage.getItem("currentColour") || "";
-  document.getElementById("colourSelectedDisplay").textContent =
-    savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
+  const cd = document.getElementById("colourSelectedDisplay");
+  if (cd) cd.textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
 }
 
 function backToJudgingFromResults() {
@@ -339,7 +343,6 @@ function backToJudgingFromResults() {
   lockScroll(false);
 }
 
-// New show from results screen
 function newShowHome() {
   const fullReset = confirm(
     "Start a new show?\n\nOK = Clear ALL saved birds on this device.\nCancel = Keep saved birds but go back to Home."
@@ -354,15 +357,13 @@ function newShowHome() {
   lockScroll(true);
 }
 
-// ----------------- SCORING UX FIX -----------------
+// ===================== SCORING UX (stop jumping to Bird ID) =====================
 function blurBirdId() {
   const idEl = document.getElementById("birdId");
-  if (idEl && document.activeElement === idEl) {
-    idEl.blur();
-  }
+  if (idEl && document.activeElement === idEl) idEl.blur();
 }
 
-// ----------------- SCORING UI -----------------
+// ===================== SCORING UI =====================
 function renderTemplateForColour(colourKey) {
   const groupKey = saGroupForColour(colourKey);
   const template = TEMPLATES[groupKey];
@@ -410,7 +411,6 @@ function calculateTotal() {
   const totalDisplay = document.getElementById("total");
   const container = document.getElementById("scoringContainer");
   const dqToggle = document.getElementById("dqToggle");
-
   if (!totalDisplay || !container) return;
 
   if (dqToggle && dqToggle.checked) {
@@ -419,9 +419,7 @@ function calculateTotal() {
   }
 
   let total = 0;
-  container.querySelectorAll(".score-slider").forEach(sl => {
-    total += Number(sl.value);
-  });
+  container.querySelectorAll(".score-slider").forEach(sl => total += Number(sl.value));
   totalDisplay.textContent = String(total);
 }
 
@@ -431,7 +429,6 @@ function getScoresObject() {
   const groupKey = saGroupForColour(colourKey);
   const template = TEMPLATES[groupKey];
   const scores = {};
-
   if (!container || !template) return scores;
 
   template.criteria.forEach(c => {
@@ -442,7 +439,6 @@ function getScoresObject() {
   return scores;
 }
 
-// Auto next bird reset
 function prepareNextBird() {
   const container = document.getElementById("scoringContainer");
   if (container) {
@@ -466,7 +462,7 @@ function prepareNextBird() {
   }
 }
 
-// ----------------- DQ UI -----------------
+// ===================== DQ UI =====================
 function resetDQUI() {
   const toggle = document.getElementById("dqToggle");
   const fields = document.getElementById("dqFields");
@@ -483,7 +479,6 @@ function toggleDQ() {
   const toggle = document.getElementById("dqToggle");
   const fields = document.getElementById("dqFields");
   if (!toggle || !fields) return;
-
   fields.style.display = toggle.checked ? "block" : "none";
   calculateTotal();
 }
@@ -498,9 +493,9 @@ function quickDQ() {
   if (reason) reason.focus();
 }
 
-// ----------------- SAVE / RESULTS / EXPORT -----------------
+// ===================== SAVE / RESULTS / EXPORT =====================
 function saveBird() {
-  const birdId = document.getElementById("birdId").value.trim();
+  const birdId = document.getElementById("birdId")?.value.trim() || "";
 
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
@@ -527,7 +522,7 @@ function saveBird() {
 
   const comment = (document.getElementById("commentBox")?.value || "").trim();
   const scores = getScoresObject();
-  const total = isDQ ? 0 : Number(document.getElementById("total").textContent || "0");
+  const total = isDQ ? 0 : Number(document.getElementById("total")?.textContent || "0");
 
   const bird = {
     show: showName,
@@ -549,7 +544,7 @@ function saveBird() {
   birds.push(bird);
   localStorage.setItem("birds", JSON.stringify(birds));
 
-  // ✅ Auto-send to Google Sheet (or queue if offline)
+  // Build admin entry
   const deviceId = getDeviceId();
   const entryKey = `${deviceId}|${bird.show}|${bird.judge}|${bird.class}|${bird.colour}|${bird.id}|${bird.timestamp}`;
 
@@ -570,8 +565,13 @@ function saveBird() {
     timestamp: bird.timestamp
   };
 
+  // Auto-send or queue
   if (navigator.onLine) {
-    sendEntriesToAdmin([syncEntry]).catch(() => queueForSync(syncEntry));
+    try {
+      sendEntriesToAdmin([syncEntry]);
+    } catch (e) {
+      queueForSync(syncEntry);
+    }
   } else {
     queueForSync(syncEntry);
   }
@@ -588,12 +588,9 @@ function showResults() {
   let birds = JSON.parse(localStorage.getItem("birds") || "[]");
   birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
 
-  const rs = document.getElementById("resultsShowName");
-  const rj = document.getElementById("resultsJudgeName");
-  const rc = document.getElementById("resultsClassName");
-  if (rs) rs.textContent = showName || "-";
-  if (rj) rj.textContent = judgeName || "-";
-  if (rc) rc.textContent = className || "-";
+  document.getElementById("resultsShowName").textContent = showName || "-";
+  document.getElementById("resultsJudgeName").textContent = judgeName || "-";
+  document.getElementById("resultsClassName").textContent = className || "-";
 
   const resultsDiv = document.getElementById("resultsPageContent");
   if (!resultsDiv) return;
@@ -604,6 +601,7 @@ function showResults() {
     return;
   }
 
+  // group by colour
   const grouped = {};
   birds.forEach(b => {
     if (!grouped[b.colour]) grouped[b.colour] = [];
@@ -698,4 +696,3 @@ function exportCSV() {
 
   URL.revokeObjectURL(url);
 }
-
