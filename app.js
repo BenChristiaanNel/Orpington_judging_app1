@@ -183,9 +183,17 @@ function saveJudgeAndContinue() {
   document.getElementById("classSelectedDisplay").textContent = savedClass || "None";
 }
 
+// ✅ Tap class = auto-continue
 function selectClass(className) {
   localStorage.setItem("currentClass", className);
   document.getElementById("classSelectedDisplay").textContent = className;
+
+  setTimeout(() => {
+    const classScreen = document.getElementById("classScreen");
+    if (classScreen && classScreen.style.display !== "none") {
+      saveClassAndContinue();
+    }
+  }, 120);
 }
 
 function saveClassAndContinue() {
@@ -208,7 +216,6 @@ function selectColour(colourKey) {
   const disp = document.getElementById("colourSelectedDisplay");
   if (disp) disp.textContent = COLOUR_LABELS[colourKey] || colourKey;
 
-  // small delay so text updates before switching
   setTimeout(() => {
     const colourScreen = document.getElementById("colourScreen");
     if (colourScreen && colourScreen.style.display !== "none") {
@@ -254,7 +261,7 @@ function backToJudgingFromResults() {
   lockScroll(false);
 }
 
-// New show button from results screen
+// New show from results screen
 function newShowHome() {
   const fullReset = confirm(
     "Start a new show?\n\nOK = Clear ALL saved birds on this device.\nCancel = Keep saved birds but go back to Home."
@@ -267,6 +274,15 @@ function newShowHome() {
 
   showOnly("introScreen");
   lockScroll(true);
+}
+
+// ----------------- SCORING UX FIX -----------------
+// ✅ Stops phone snapping back to Bird ID while sliding
+function blurBirdId() {
+  const idEl = document.getElementById("birdId");
+  if (idEl && document.activeElement === idEl) {
+    idEl.blur();
+  }
 }
 
 // ----------------- SCORING UI -----------------
@@ -294,7 +310,9 @@ function renderTemplateForColour(colourKey) {
                  value="0"
                  class="score-slider"
                  data-crit-key="${c.key}"
-                 oninput="updateSliderValue(this)" />
+                 oninput="updateSliderValue(this)"
+                 onpointerdown="blurBirdId()"
+                 ontouchstart="blurBirdId()" />
           <span class="score-badge">0</span>
         </div>
       </div>
@@ -465,7 +483,6 @@ function showResults() {
   let birds = JSON.parse(localStorage.getItem("birds") || "[]");
   birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
 
-  // Header labels on results screen
   const rs = document.getElementById("resultsShowName");
   const rj = document.getElementById("resultsJudgeName");
   const rc = document.getElementById("resultsClassName");
@@ -482,7 +499,6 @@ function showResults() {
     return;
   }
 
-  // Group by colour
   const grouped = {};
   birds.forEach(b => {
     if (!grouped[b.colour]) grouped[b.colour] = [];
@@ -528,13 +544,6 @@ function showResults() {
   showOnly("resultsScreen");
 }
 
-function resetShow() {
-  if (confirm("Start a new show? This will delete ALL saved birds on this device.")) {
-    localStorage.removeItem("birds");
-    alert("New show started.");
-  }
-}
-
 function exportCSV() {
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
@@ -574,4 +583,3 @@ function exportCSV() {
 
   URL.revokeObjectURL(url);
 }
-
