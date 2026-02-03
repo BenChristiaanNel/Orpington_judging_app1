@@ -277,43 +277,40 @@
   </div>
 
   <!-- ✅ RESULTS SCREEN -->
-  <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff; box-sizing:border-box;">
-    <h1>🏆 Results</h1>
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+  <button type="button" onclick="backToJudgingFromResults()"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+    ← Back to Judging
+  </button>
 
-    <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
+  <button type="button" onclick="viewBestClassColour()"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+    Best in Class + Colour (Top 5)
+  </button>
 
-    <div class="card">
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-        <button type="button" onclick="loadResultsMode('classColour')"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-          Best in Class + Colour (Top 5)
-        </button>
+  <button type="button" onclick="viewBestVariety()"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+    Best in Variety (Top 3)
+  </button>
 
-        <button type="button" onclick="loadResultsMode('variety')"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-          Best in Variety (Top 3)
-        </button>
+  <button type="button" onclick="viewBestInBreed()"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+    Best in Breed
+  </button>
 
-        <button type="button" onclick="loadResultsMode('breed')"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-          Best in Breed
-        </button>
+  <button type="button" onclick="exportCSV()"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+    Export Results
+  </button>
 
-        <button type="button" onclick="backToJudgingFromResults()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-          ← Back to Judging
-        </button>
+  <button type="button" onclick="newShowHome()"
+    style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
+    New Show (Home)
+  </button>
+</div>
 
-        <button type="button" onclick="exportCSV()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-          Export Results (Local)
-        </button>
+<div id="resultsPageContent"></div>
 
-        <button type="button" onclick="newShowHome()"
-          style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
-          New Show (Home)
-        </button>
-      </div>
 
       <div style="margin-bottom:10px;">
         <button type="button" onclick="syncNow()"
