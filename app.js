@@ -1,6 +1,6 @@
 // ===================== ADMIN SYNC SETTINGS =====================
 const ADMIN_URL = "https://script.google.com/macros/s/AKfycbxN44zh57LIM2SebCG6yffJF02sWWOhavfllBQzHc1y8ScyeGc6YjIJqxSZAdVIg7DT/exec";
-const ADMIN_PASSCODE = "AVIOMED2026".trim(); // MUST match PASSCODE in your Code.gs
+const ADMIN_PASSCODE = "AVIOMED2026";
 
 // ===================== SCREEN CONTROL =====================
 function lockScroll(locked) {
@@ -12,13 +12,19 @@ function showOnly(screenId) {
     "introScreen", "showScreen", "judgeScreen", "classScreen", "colourScreen",
     "judgingScreen", "resultsScreen"
   ];
-
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.display = (id === screenId)
-      ? (id === "judgingScreen" || id === "resultsScreen" ? "block" : "flex")
-      : "none";
+
+    const isTarget = id === screenId;
+    if (!isTarget) {
+      el.style.display = "none";
+      return;
+    }
+
+    // Blue screens use flex, scrolling screens use block
+    if (id === "judgingScreen" || id === "resultsScreen") el.style.display = "block";
+    else el.style.display = "flex";
   });
 
   lockScroll(!(screenId === "judgingScreen" || screenId === "resultsScreen"));
@@ -28,7 +34,7 @@ window.addEventListener("load", () => {
   showOnly("introScreen");
   lockScroll(true);
 
-  // attempt sync if online
+  // try syncing if online
   if (navigator.onLine) {
     try { syncPending(); } catch(e) {}
   }
@@ -54,22 +60,12 @@ function queueForSync(entry) {
   localStorage.setItem("pendingSync", JSON.stringify(pending));
 }
 
-/**
- * Reliable upload (no CORS problems):
- * Uses navigator.sendBeacon to POST data to Apps Script web app.
- */
 function sendEntriesToAdmin(entries) {
-  if (!ADMIN_URL) throw new Error("ADMIN_URL not set");
-
-  const payload = {
-    passcode: ADMIN_PASSCODE,
-    entries
-  };
-
+  const payload = { passcode: String(ADMIN_PASSCODE).trim(), entries };
   const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=utf-8" });
+
   const ok = navigator.sendBeacon(ADMIN_URL, blob);
   if (!ok) throw new Error("sendBeacon failed");
-
   return { ok: true, inserted: entries.length };
 }
 
@@ -77,10 +73,7 @@ function syncPending() {
   const pending = JSON.parse(localStorage.getItem("pendingSync") || "[]");
   if (pending.length === 0) return { ok: true, inserted: 0 };
 
-  // throws if sendBeacon fails
   sendEntriesToAdmin(pending);
-
-  // clear on success
   localStorage.removeItem("pendingSync");
   return { ok: true, inserted: pending.length };
 }
@@ -98,7 +91,42 @@ function syncNow() {
   }
 }
 
-// ===================== COLOUR LIST + GROUPS =====================
+// ===================== JSONP (leaderboard read) =====================
+function jsonpLoad(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Math.random().toString(36).slice(2);
+    const s = document.createElement("script");
+
+    window[cb] = (data) => {
+      cleanup();
+      resolve(data);
+    };
+
+    function cleanup() {
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      if (s && s.parentNode) s.parentNode.removeChild(s);
+    }
+
+    s.onerror = () => {
+      cleanup();
+      reject(new Error("JSONP failed"));
+    };
+
+    s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+    document.body.appendChild(s);
+  });
+}
+
+async function fetchLeaderboardSafe(showName) {
+  const url =
+    `${ADMIN_URL}?mode=leaderboard` +
+    `&show=${encodeURIComponent(showName)}` +
+    `&passcode=${encodeURIComponent(String(ADMIN_PASSCODE).trim())}`;
+
+  return await jsonpLoad(url);
+}
+
+// ===================== COLOUR LABELS =====================
 const COLOUR_LABELS = {
   BLACK: "Black",
   BLUE: "Blue",
@@ -230,7 +258,6 @@ function populateDQReasons(colourKey) {
 function startApp() {
   showOnly("showScreen");
 
-  // preselect show if saved
   const savedShow = localStorage.getItem("currentShow") || "";
   const sel = document.getElementById("showSelect");
   if (sel && savedShow) sel.value = savedShow;
@@ -319,6 +346,7 @@ function saveColourAndContinue() {
 
   showOnly("judgingScreen");
   lockScroll(false);
+
   calculateTotal();
 
   const birdIdInput = document.getElementById("birdId");
@@ -495,7 +523,7 @@ function quickDQ() {
   if (reason) reason.focus();
 }
 
-// ===================== SAVE =====================
+// ===================== SAVE / RESULTS / EXPORT =====================
 function saveBird() {
   const birdId = document.getElementById("birdId")?.value.trim() || "";
 
@@ -569,11 +597,8 @@ function saveBird() {
 
   // Auto-send or queue
   if (navigator.onLine) {
-    try {
-      sendEntriesToAdmin([syncEntry]);
-    } catch (e) {
-      queueForSync(syncEntry);
-    }
+    try { sendEntriesToAdmin([syncEntry]); }
+    catch (e) { queueForSync(syncEntry); }
   } else {
     queueForSync(syncEntry);
   }
@@ -582,206 +607,15 @@ function saveBird() {
   prepareNextBird();
 }
 
-// ===================== RESULTS (LOCAL + GOOGLE SHEET LEADERBOARD) =====================
-
-// Helper: escape HTML
-function esc(s) {
-  return String(s || "").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
-
-// Fetch leaderboard JSON from Apps Script (ALL judges / ALL phones)
-function jsonpLoad(url) {
-  return new Promise((resolve, reject) => {
-    const cb = "cb_" + Math.random().toString(36).slice(2);
-    const s = document.createElement("script");
-
-    window[cb] = (data) => {
-      cleanup();
-      resolve(data);
-    };
-
-    function cleanup() {
-      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
-      if (s && s.parentNode) s.parentNode.removeChild(s);
-    }
-
-    s.onerror = () => {
-      cleanup();
-      reject(new Error("JSONP failed"));
-    };
-
-    // Add callback to URL
-    s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
-    document.body.appendChild(s);
-  });
-}
-
-async function fetchLeaderboardSafe(showName) {
-  const url =
-    `${ADMIN_URL}?mode=leaderboard` +
-    `&show=${encodeURIComponent(showName)}` +
-    `&passcode=${encodeURIComponent(ADMIN_PASSCODE)}`;
-
-  return await jsonpLoad(url);
-}
-
-
-// Render functions for leaderboard data (flexible to structure)
-function renderBestInBreed(best) {
-  if (!best || (!best.winner && !best.bestInBreed)) return "<p>No data yet.</p>";
-
-  const w = best.winner || best.bestInBreed || null;
-  const rv = best.reserve || best.reserveBestInBreed || null;
-
-  let html = `<h2>Best in Breed</h2>`;
-  if (w) {
-    html += `<div style="background:#ffd700;color:black;font-weight:900;padding:10px;border-radius:12px;margin:8px 0;">
-      🥇 Best in Breed: Bird ${esc(w.bird_id || w.birdId)} — <strong>${esc(w.total)}</strong> (${esc(w.class)} • ${esc(w.colour)})
-    </div>`;
-  }
-  if (rv) {
-    html += `<div style="background:#c0c0c0;color:black;font-weight:900;padding:10px;border-radius:12px;margin:8px 0;">
-      🥈 Reserve: Bird ${esc(rv.bird_id || rv.birdId)} — <strong>${esc(rv.total)}</strong> (${esc(rv.class)} • ${esc(rv.colour)})
-    </div>`;
-  }
-  return html;
-}
-
-function renderVariety(groups) {
-  if (!groups || !groups.length) return "<p>No data yet.</p>";
-
-  let html = `<h2>Best in Variety (Top 3)</h2>`;
-  groups.forEach(g => {
-    html += `<h3>${esc(g.colour)} <span style="opacity:0.8;">(entries: ${esc(g.entries || 0)})</span></h3>`;
-    const top = g.top3 || g.top || [];
-    top.slice(0,3).forEach((b,i) => {
-      let style = "";
-      if (i === 0) style = "background:#ffd700;color:black;";
-      else if (i === 1) style = "background:#c0c0c0;color:black;";
-      else if (i === 2) style = "background:#cd7f32;color:white;";
-      html += `<div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
-        ${i+1}. Bird ${esc(b.bird_id || b.birdId)} — <strong>${esc(b.total)}</strong> (${esc(b.class)})
-      </div>`;
-    });
-    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
-  });
-  return html;
-}
-
-function renderClassColour(groups) {
-  if (!groups || !groups.length) return "<p>No data yet.</p>";
-
-  let html = `<h2>Best in Class + Colour (Top 5)</h2>`;
-  groups.forEach(g => {
-    html += `<h3>${esc(g.class)} — ${esc(g.colour)} <span style="opacity:0.8;">(entries: ${esc(g.entries || 0)})</span></h3>`;
-    const top = g.top5 || g.top || [];
-    top.slice(0,5).forEach((b,i) => {
-      let style = "";
-      if (i === 0) style = "background:#ffd700;color:black;";
-      else if (i === 1) style = "background:#c0c0c0;color:black;";
-      else if (i === 2) style = "background:#cd7f32;color:white;";
-      html += `<div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
-        ${i+1}. Bird ${esc(b.bird_id || b.birdId)} — <strong>${esc(b.total)}</strong>
-      </div>`;
-    });
-    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
-  });
-  return html;
-}
-
-// Local device results (your original logic), used as fallback
-function renderLocalResultsHTML() {
-  const showName = localStorage.getItem("currentShow") || "";
-  const judgeName = localStorage.getItem("currentJudge") || "";
-  const className = localStorage.getItem("currentClass") || "";
-
-  let birds = JSON.parse(localStorage.getItem("birds") || "[]");
-  birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
-
-  if (birds.length === 0) {
-    return "<p>No birds saved yet for this show/judge/class.</p>";
-  }
-
-  // group by colour
-  const grouped = {};
-  birds.forEach(b => {
-    if (!grouped[b.colour]) grouped[b.colour] = [];
-    grouped[b.colour].push(b);
-  });
-
-  let html = `
-    <div style="margin-bottom:12px;">
-      <button type="button" onclick="syncNow()"
-        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-        Sync Pending to Admin
-      </button>
-      <span style="margin-left:10px; font-weight:800; opacity:0.8;">
-        (offline birds will upload when online)
-      </span>
-    </div>
-    <p style="opacity:0.85;"><em>Offline/local results (this device only).</em></p>
-  `;
-
-  Object.keys(grouped).forEach(colKey => {
-    const label = COLOUR_LABELS[colKey] || colKey;
-
-    const all = grouped[colKey];
-    const ranked = all.filter(x => !x.disqualified).sort((a, b) => Number(b.total) - Number(a.total));
-    const dq = all.filter(x => x.disqualified);
-
-    html += `<h3>${label} (Total entries: ${all.length})</h3>`;
-
-    if (ranked.length === 0) {
-      html += `<p><em>No ranked birds (all disqualified).</em></p>`;
-    } else {
-      ranked.forEach((bird, index) => {
-        let style = "";
-        if (index === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
-        else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
-        else if (index === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
-
-        html += `<p style="${style}">${index + 1}. Bird ${esc(bird.id)} – <strong>${esc(bird.total)}</strong></p>`;
-      });
-    }
-
-    if (dq.length > 0) {
-      html += `<p style="margin-top:10px; font-weight:900;">Disqualified:</p>`;
-      dq.forEach(b => {
-        const reason = esc(b.dqReason || "No reason");
-        html += `<p style="padding:6px 0; opacity:0.95;"><strong>Bird ${esc(b.id)}</strong> — <em>${reason}</em></p>`;
-      });
-    }
-
-    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
-  });
-
-  return html;
-}
-
-// MAIN entry point from button: opens results screen + loads default mode
 function showResults() {
-  const showName = localStorage.getItem("currentShow") || "";
-  const judgeName = localStorage.getItem("currentJudge") || "";
-  const className = localStorage.getItem("currentClass") || "";
-
-  // Fill labels (your HTML has these; we keep them)
-  const rs = document.getElementById("resultsShowName");
-  const rj = document.getElementById("resultsJudgeName");
-  const rc = document.getElementById("resultsClassName");
-
-  if (rs) rs.textContent = showName || "-";
-
-  // You said you don’t need judge in results — so show “All Judges”
-  if (rj) rj.textContent = "All Judges (Google Sheet)";
-  if (rc) rc.textContent = className || "-";
-
   showOnly("resultsScreen");
+  const showName = localStorage.getItem("currentShow") || "";
+  document.getElementById("resultsShowName").textContent = showName || "-";
 
-  // Default results view
+  // Default view
   loadResultsMode("classColour");
 }
 
-// Called by your 3 buttons in index.html
 async function loadResultsMode(mode) {
   const out = document.getElementById("resultsPageContent");
   if (!out) return;
@@ -792,149 +626,23 @@ async function loadResultsMode(mode) {
     return;
   }
 
-  out.innerHTML = "<p>Loading results from Google Sheet…</p>";
+  out.innerHTML = "<p>Loading results…</p>";
 
   try {
-    // Best practice: push any pending birds first
-    if (navigator.onLine) {
-      try { syncPending(); } catch(e) {}
-    }
-
-    const data = await fetchLeaderboard(showName);
-
+    const data = await fetchLeaderboardSafe(showName);
     if (!data || data.ok !== true) {
-      out.innerHTML = "<p>Could not load leaderboard (server rejected). Showing local device results instead.</p>" + renderLocalResultsHTML();
+      out.innerHTML = "<p>Could not load Sheet results. Showing local device results instead.</p>" +
+        buildLocalResultsHTML_ForCurrentShowClass();
       return;
     }
-
-    const results = data.results || {};
-
-    if (mode === "breed") {
-      out.innerHTML = renderBestInBreed(results.bestInBreed || results.breed || null);
-      return;
-    }
-
-    if (mode === "variety") {
-      out.innerHTML = renderVariety(results.bestVariety || results.variety || []);
-      return;
-    }
-
-    // default: classColour
-    out.innerHTML = renderClassColour(results.bestClassColour || results.classColour || []);
+    out.innerHTML = renderLeaderboardToHTML(data, mode);
   } catch (e) {
-    out.innerHTML = "<p>Could not load leaderboard (no internet / blocked). Showing local device results instead.</p>" + renderLocalResultsHTML();
+    out.innerHTML = "<p>No internet / blocked. Showing local device results instead.</p>" +
+      buildLocalResultsHTML_ForCurrentShowClass();
   }
 }
 
-// ===================== EXPORT (LOCAL DEVICE EXPORT) =====================
-function exportCSV() {
-  const showName = localStorage.getItem("currentShow") || "";
-  const judgeName = localStorage.getItem("currentJudge") || "";
-  const className = localStorage.getItem("currentClass") || "";
-
-  let birds = JSON.parse(localStorage.getItem("birds") || "[]");
-  birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
-
-  if (birds.length === 0) {
-    alert("No data to export for this show/judge/class.");
-    return;
-  }
-
-  let csv = "Show,Judge,Class,Colour,Bird ID,Disqualified,DQ Reason,DQ Note,Total,ScoresJSON,Comment,Timestamp\n";
-
-  birds.forEach(b => {
-    const colourLabel = COLOUR_LABELS[b.colour] || b.colour;
-    const scoresJson = JSON.stringify(b.scores || {}).replace(/"/g, '""');
-    const comment = (b.comment || "").replace(/"/g, '""');
-    const dqReason = (b.dqReason || "").replace(/"/g, '""');
-    const dqNote = (b.dqNote || "").replace(/"/g, '""');
-
-    csv += `"${b.show}","${b.judge}","${b.class}","${colourLabel}","${b.id}",${b.disqualified ? "YES":"NO"},"${dqReason}","${dqNote}",${b.total},"${scoresJson}","${comment}","${b.timestamp}"\n`;
-  });
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-
-  const safeShow = showName.replace(/[^a-z0-9]+/gi, "_");
-  const safeJudge = judgeName.replace(/[^a-z0-9]+/gi, "_");
-  const safeClass = className.replace(/[^a-z0-9]+/gi, "_");
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `orpington_results_${safeShow}_${safeJudge}_${safeClass}.csv`;
-  a.click();
-
-  URL.revokeObjectURL(url);
-}
-
-// ===================== RESULTS OVERRIDE (SAFE FIX) =====================
-// This block makes View Results work even if earlier results code broke.
-// Paste at the VERY BOTTOM of app.js
-
-function buildLocalResultsHTML_ForCurrentShowClass() {
-  const showName = localStorage.getItem("currentShow") || "";
-  const className = localStorage.getItem("currentClass") || "";
-
-  let birds = JSON.parse(localStorage.getItem("birds") || "[]");
-
-  // Local fallback uses THIS device only (still useful if offline)
-  birds = birds.filter(b => b.show === showName && b.class === className);
-
-  if (birds.length === 0) {
-    return "<p>No birds saved yet on this device for this show/class.</p>";
-  }
-
-  // group by colour
-  const grouped = {};
-  birds.forEach(b => {
-    if (!grouped[b.colour]) grouped[b.colour] = [];
-    grouped[b.colour].push(b);
-  });
-
-  let html = `<p style="opacity:0.8;"><em>Local device results (offline fallback).</em></p>`;
-
-  Object.keys(grouped).forEach(colKey => {
-    const label = (COLOUR_LABELS && COLOUR_LABELS[colKey]) ? COLOUR_LABELS[colKey] : colKey;
-
-    const all = grouped[colKey];
-    const ranked = all.filter(x => !x.disqualified).sort((a, b) => Number(b.total) - Number(a.total));
-    const dq = all.filter(x => x.disqualified);
-
-    html += `<h3>${label} (Entries: ${all.length})</h3>`;
-
-    ranked.slice(0,5).forEach((bird, index) => {
-      let style = "";
-      if (index === 0) style = "background:#ffd700;color:black;font-weight:900;padding:8px;border-radius:8px;display:block;";
-      else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:900;padding:8px;border-radius:8px;display:block;";
-      else if (index === 2) style = "background:#cd7f32;color:white;font-weight:900;padding:8px;border-radius:8px;display:block;";
-
-      html += `<p style="${style}">${index + 1}. Bird ${bird.id} — <strong>${bird.total}</strong></p>`;
-    });
-
-    if (dq.length > 0) {
-      html += `<p style="margin-top:10px;font-weight:900;">Disqualified:</p>`;
-      dq.forEach(b => {
-        const reason = String(b.dqReason || "No reason").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-        html += `<p><strong>Bird ${b.id}</strong> — <em>${reason}</em></p>`;
-      });
-    }
-
-    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
-  });
-
-  return html;
-}
-
-async function fetchLeaderboardSafe(showName) {
-  const url =
-    `${ADMIN_URL}?mode=leaderboard` +
-    `&show=${encodeURIComponent(showName)}` +
-    `&passcode=${encodeURIComponent(ADMIN_PASSCODE)}`;
-
-  const res = await fetch(url);
-  return await res.json();
-}
-
+// ===== RENDER LEADERBOARD MODES =====
 function renderLeaderboardToHTML(data, mode) {
   const results = (data && data.results) ? data.results : {};
   const bestClassColour = results.bestClassColour || [];
@@ -943,7 +651,7 @@ function renderLeaderboardToHTML(data, mode) {
 
   const currentClass = (localStorage.getItem("currentClass") || "").trim();
 
-  // ===== BEST IN BREED (overall) =====
+  // BEST IN BREED (overall)
   if (mode === "breed") {
     if (!bestInBreed || (!bestInBreed.winner && !bestInBreed.reserve)) {
       return "<p>No Best in Breed yet.</p>";
@@ -974,7 +682,7 @@ function renderLeaderboardToHTML(data, mode) {
     return html;
   }
 
-  // ===== BEST IN VARIETY (per colour across ALL classes) =====
+  // BEST IN VARIETY (per colour across ALL classes)
   if (mode === "variety") {
     if (!bestVariety.length) return "<p>No Best in Variety yet.</p>";
 
@@ -1009,18 +717,15 @@ function renderLeaderboardToHTML(data, mode) {
     return html;
   }
 
-  // ===== DEFAULT: BEST IN CLASS + COLOUR (Top 5) =====
+  // DEFAULT: BEST IN CLASS + COLOUR (Top 5) for selected class
   if (!bestClassColour.length) return "<p>No Best in Class + Colour yet.</p>";
 
-  // Filter to ONLY the class you selected
   const filtered = currentClass
     ? bestClassColour.filter(g => String(g.class || "").toUpperCase() === currentClass.toUpperCase())
     : bestClassColour;
 
   let html = `<h2>Best in Class + Colour (Top 5)</h2>`;
-  if (currentClass) {
-    html += `<p style="opacity:0.8;"><em>Showing class: ${currentClass}</em></p>`;
-  }
+  if (currentClass) html += `<p style="opacity:0.8;"><em>Showing class: ${currentClass}</em></p>`;
 
   filtered.forEach(g => {
     html += `<h3 style="margin-top:16px;">${g.class} — ${g.colour} <span style="opacity:0.75;">(entries: ${g.entries || 0})</span></h3>`;
@@ -1050,97 +755,84 @@ function renderLeaderboardToHTML(data, mode) {
   return html;
 }
 
+// ===== LOCAL FALLBACK (offline) =====
+function buildLocalResultsHTML_ForCurrentShowClass() {
+  const showName = localStorage.getItem("currentShow") || "";
+  const className = localStorage.getItem("currentClass") || "";
 
-  if (mode === "variety") {
-    if (!bestVariety.length) return "<p>No Best in Variety yet.</p>";
-    let html = `<h2>Best in Variety (Top 3)</h2>`;
-    bestVariety.forEach(g => {
-      html += `<h3>${g.colour} <span style="opacity:0.8;">(entries: ${g.entries || 0})</span></h3>`;
-      (g.top3 || g.top || []).slice(0,3).forEach((b,i) => {
-        let style = "";
-        if (i === 0) style = "background:#ffd700;color:black;";
-        else if (i === 1) style = "background:#c0c0c0;color:black;";
-        else if (i === 2) style = "background:#cd7f32;color:white;";
-        html += `<div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
-          ${i+1}. Bird ${b.bird_id || b.birdId} — <strong>${b.total}</strong> (${b.class})
-        </div>`;
-      });
-      html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
-    });
-    return html;
-  }
+  let birds = JSON.parse(localStorage.getItem("birds") || "[]");
+  birds = birds.filter(b => b.show === showName && b.class === className);
 
-  // default: classColour
-  if (!bestClassColour.length) return "<p>No Best in Class + Colour yet.</p>";
-  let html = `<h2>Best in Class + Colour (Top 5)</h2>`;
-  bestClassColour.forEach(g => {
-    html += `<h3>${g.class} — ${g.colour} <span style="opacity:0.8;">(entries: ${g.entries || 0})</span></h3>`;
-    (g.top5 || g.top || []).slice(0,5).forEach((b,i) => {
+  if (birds.length === 0) return "<p>No birds saved yet on this device for this show/class.</p>";
+
+  const grouped = {};
+  birds.forEach(b => {
+    if (!grouped[b.colour]) grouped[b.colour] = [];
+    grouped[b.colour].push(b);
+  });
+
+  let html = `<p style="opacity:0.8;"><em>Local device results (offline fallback).</em></p>`;
+
+  Object.keys(grouped).forEach(colKey => {
+    const label = COLOUR_LABELS[colKey] || colKey;
+    const all = grouped[colKey];
+    const ranked = all.filter(x => !x.disqualified).sort((a, b) => Number(b.total) - Number(a.total));
+
+    html += `<h3>${label} (Entries: ${all.length})</h3>`;
+
+    ranked.slice(0, 5).forEach((bird, index) => {
       let style = "";
-      if (i === 0) style = "background:#ffd700;color:black;";
-      else if (i === 1) style = "background:#c0c0c0;color:black;";
-      else if (i === 2) style = "background:#cd7f32;color:white;";
-      html += `<div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
-        ${i+1}. Bird ${b.bird_id || b.birdId} — <strong>${b.total}</strong>
-      </div>`;
+      if (index === 0) style = "background:#ffd700;color:black;font-weight:900;padding:8px;border-radius:8px;display:block;";
+      else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:900;padding:8px;border-radius:8px;display:block;";
+      else if (index === 2) style = "background:#cd7f32;color:white;font-weight:900;padding:8px;border-radius:8px;display:block;";
+
+      html += `<p style="${style}">${index + 1}. Bird ${bird.id} — <strong>${bird.total}</strong></p>`;
     });
+
     html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
   });
+
   return html;
 }
 
-// ✅ This is what your View Results button calls
-window.showResults = function() {
-  try {
-    const showName = localStorage.getItem("currentShow") || "";
-    const className = localStorage.getItem("currentClass") || "";
-
-    const rs = document.getElementById("resultsShowName");
-    if (rs) rs.textContent = showName || "-";
-
-    // If these exist in your HTML, fill them (safe)
-    const rj = document.getElementById("resultsJudgeName");
-    if (rj) rj.textContent = "All Judges (Sheet)";
-
-    const rc = document.getElementById("resultsClassName");
-    if (rc) rc.textContent = className || "-";
-
-    showOnly("resultsScreen");
-
-    // Default mode
-    window.loadResultsMode("classColour");
-  } catch (e) {
-    alert("Results error: " + e.message);
-  }
-};
-
-// ✅ Called by your Results buttons
-window.loadResultsMode = async function(mode) {
-  const out = document.getElementById("resultsPageContent");
-  if (!out) return;
-
+// ===== EXPORT LOCAL CSV (optional) =====
+function exportCSV() {
   const showName = localStorage.getItem("currentShow") || "";
-  if (!showName) {
-    out.innerHTML = "<p>Please select a show first.</p>";
+  const judgeName = localStorage.getItem("currentJudge") || "";
+  const className = localStorage.getItem("currentClass") || "";
+
+  let birds = JSON.parse(localStorage.getItem("birds") || "[]");
+  birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
+
+  if (birds.length === 0) {
+    alert("No local device data to export for this show/judge/class.");
     return;
   }
 
-  out.innerHTML = "<p>Loading results…</p>";
+  let csv = "Show,Judge,Class,Colour,Bird ID,Disqualified,DQ Reason,DQ Note,Total,ScoresJSON,Comment,Timestamp\n";
 
-  try {
-    // Try Google Sheet leaderboard first
-    const data = await fetchLeaderboardSafe(showName);
-    if (data && data.ok === true) {
-      out.innerHTML = renderLeaderboardToHTML(data, mode);
-      return;
-    }
+  birds.forEach(b => {
+    const colourLabel = COLOUR_LABELS[b.colour] || b.colour;
+    const scoresJson = JSON.stringify(b.scores || {}).replace(/"/g, '""');
+    const comment = (b.comment || "").replace(/"/g, '""');
+    const dqReason = (b.dqReason || "").replace(/"/g, '""');
+    const dqNote = (b.dqNote || "").replace(/"/g, '""');
 
-    // Fallback
-    out.innerHTML = "<p>Could not load Sheet results. Showing local device results instead.</p>" +
-      buildLocalResultsHTML_ForCurrentShowClass();
-  } catch (e) {
-    // Offline / fetch blocked
-    out.innerHTML = "<p>No internet / blocked. Showing local device results instead.</p>" +
-      buildLocalResultsHTML_ForCurrentShowClass();
-  }
-};
+    csv += `"${b.show}","${b.judge}","${b.class}","${colourLabel}","${b.id}",${b.disqualified ? "YES":"NO"},"${dqReason}","${dqNote}",${b.total},"${scoresJson}","${comment}","${b.timestamp}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const safeShow = showName.replace(/[^a-z0-9]+/gi, "_");
+  const safeJudge = judgeName.replace(/[^a-z0-9]+/gi, "_");
+  const safeClass = className.replace(/[^a-z0-9]+/gi, "_");
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `orpington_results_${safeShow}_${safeJudge}_${safeClass}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
