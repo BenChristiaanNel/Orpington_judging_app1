@@ -1,516 +1,698 @@
-/************** CONFIG **************/
-const SERVER_URL = "https://script.google.com/macros/s/AKfycbxN44zh57LIM2SebCG6yffJF02sWWOhavfllBQzHc1y8ScyeGc6YjIJqxSZAdVIg7DT/exec"; // your Apps Script /exec
-const ADMIN_PASSCODE = "AVIOMED2026"; // case-insensitive server-side
+// ===================== ADMIN SYNC SETTINGS =====================
+const ADMIN_URL = "https://script.google.com/macros/s/AKfycbya1CBfkp18OnTKmEgyBbJ-qqgp-fqFaO7N91ygz0AZ2WpRAO8kGp9UHWypQ_pcyhml/exec";
+const ADMIN_PASSCODE = "AVIOMED2026".trim(); // MUST match PASSCODE in your Code.gs
 
-// Orpington colours list (edit anytime)
-const ORPINGTON_COLOURS = [
-  "BLACK","BLUE","SPLASH","BUFF",
-  "GOLD LACED","SILVER LACED",
-  "CHOCOLATE","LAVENDER","CUCKOO","SPANGLE",
-  "BIRCHEN","JUBILEE","MAHOGANY","LEMON CUCKOO",
-  "CRELE","BLUE LACED RED","BLUE PARADE","MOTTLED",
-  "WHITE","PARTRIDGE"
-];
+// ===================== SCREEN CONTROL =====================
+function lockScroll(locked) {
+  document.body.style.overflow = locked ? "hidden" : "auto";
+}
 
-/************** STATE **************/
-let dqOn = false;
-let deviceId = localStorage.getItem("device_id") || ("dev_" + Math.random().toString(16).slice(2));
-localStorage.setItem("device_id", deviceId);
+function showOnly(screenId) {
+  const ids = [
+    "introScreen", "showScreen", "judgeScreen", "classScreen", "colourScreen",
+    "judgingScreen", "resultsScreen"
+  ];
 
-function getShow() { return (localStorage.getItem("currentShow") || "").trim(); }
-function getJudge() { return (localStorage.getItem("currentJudge") || "").trim(); }
-function getClass() { return (localStorage.getItem("currentClass") || "").trim(); }
-function getColour() { return (localStorage.getItem("currentColour") || "").trim(); }
-
-function setShow(v){ localStorage.setItem("currentShow", (v||"").trim()); }
-function setJudge(v){ localStorage.setItem("currentJudge", (v||"").trim()); }
-function setClass(v){ localStorage.setItem("currentClass", (v||"").trim()); }
-function setColour(v){ localStorage.setItem("currentColour", (v||"").trim()); }
-
-/************** SCREEN NAV **************/
-function showOnly(id) {
-  const screens = ["introScreen","showScreen","judgeScreen","classScreen","colourScreen","judgingScreen","resultsScreen"];
-  screens.forEach(s => {
-    const el = document.getElementById(s);
-    if (el) el.style.display = (s === id) ? "block" : "none";
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = (id === screenId) ? (id === "judgingScreen" || id === "resultsScreen" ? "block" : "flex") : "none";
   });
+
+  lockScroll(!(screenId === "judgingScreen" || screenId === "resultsScreen"));
 }
 
-function goHome(){ showOnly("introScreen"); }
-function goShow(){ showOnly("showScreen"); }
-function goJudge(){ showOnly("judgeScreen"); }
-function goClass(){ showOnly("classScreen"); }
-function goColour(){ showOnly("colourScreen"); }
-function backToJudging(){ showOnly("judgingScreen"); }
-
-function unlockJudge() {
-  // Clears locked show/judge/class/colour selection (does NOT delete saved birds)
-  localStorage.removeItem("currentShow");
-  localStorage.removeItem("currentJudge");
-  localStorage.removeItem("currentClass");
-  localStorage.removeItem("currentColour");
-  goHome();
-}
-
-function resetShowFlow() {
-  // New show flow (does NOT delete submissions already synced to sheet)
-  unlockJudge();
-}
-
-/************** INIT **************/
 window.addEventListener("load", () => {
-  buildColourList();
-  initSliders();
-  renderHeaderLabels();
-  autoSkipLockedSteps();
-  updateSyncStatus("Ready");
+  showOnly("introScreen");
+  lockScroll(true);
 
-  window.addEventListener("online", () => {
-    updateSyncStatus("Online — syncing…");
-    syncNow();
-  });
+  // attempt sync if online
+  if (navigator.onLine) {
+    try { syncPending(); } catch(e) {}
+  }
 });
 
-function autoSkipLockedSteps() {
-  // If show + judge are locked, skip directly to class selection
-  const show = getShow();
-  const judge = getJudge();
+window.addEventListener("online", () => {
+  try { syncPending(); } catch(e) {}
+});
 
-  if (show && judge) {
-    goClass();
-  } else {
-    goHome();
+// ===================== DEVICE + SYNC QUEUE =====================
+function getDeviceId() {
+  let id = localStorage.getItem("deviceId");
+  if (!id) {
+    id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now();
+    localStorage.setItem("deviceId", id);
+  }
+  return id;
+}
+
+function queueForSync(entry) {
+  const pending = JSON.parse(localStorage.getItem("pendingSync") || "[]");
+  pending.push(entry);
+  localStorage.setItem("pendingSync", JSON.stringify(pending));
+}
+
+/**
+ * Reliable upload (no CORS problems):
+ * Uses navigator.sendBeacon to POST data to Apps Script web app.
+ */
+function sendEntriesToAdmin(entries) {
+  if (!ADMIN_URL) throw new Error("ADMIN_URL not set");
+
+  const payload = {
+    passcode: ADMIN_PASSCODE,
+    entries
+  };
+
+  const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=utf-8" });
+  const ok = navigator.sendBeacon(ADMIN_URL, blob);
+  if (!ok) throw new Error("sendBeacon failed");
+
+  return { ok: true, inserted: entries.length };
+}
+
+function syncPending() {
+  const pending = JSON.parse(localStorage.getItem("pendingSync") || "[]");
+  if (pending.length === 0) return { ok: true, inserted: 0 };
+
+  // throws if sendBeacon fails
+  sendEntriesToAdmin(pending);
+
+  // clear on success
+  localStorage.removeItem("pendingSync");
+  return { ok: true, inserted: pending.length };
+}
+
+function syncNow() {
+  if (!navigator.onLine) {
+    alert("No internet right now. Birds are saved and will sync later.");
+    return;
+  }
+  try {
+    const r = syncPending();
+    alert("Synced pending birds: " + (r.inserted || 0));
+  } catch (e) {
+    alert("Sync failed. Try again when signal is stronger.");
   }
 }
 
-function renderHeaderLabels() {
-  const s = document.getElementById("showNameDisplay");
-  const j = document.getElementById("judgeNameDisplay");
-  const c = document.getElementById("classDisplay");
-  const col = document.getElementById("colourDisplay");
+// ===================== COLOUR LIST + GROUPS =====================
+const COLOUR_LABELS = {
+  BLACK: "Black",
+  BLUE: "Blue",
+  BUFF: "Buff",
+  WHITE: "White",
+  SPLASH: "Splash",
+  CHOCOLATE: "Chocolate",
+  LAVENDER: "Lavender",
+  JUBILEE: "Jubilee",
+  CUCKOO: "Cuckoo",
+  PARTRIDGE: "Partridge",
+  SILVER_LACED: "Silver Laced",
+  GOLD_LACED: "Gold Laced",
+  RED: "Red",
+  ISABEL: "Isabel",
+  CRELE: "Crele"
+};
 
-  if (s) s.textContent = getShow() || "-";
-  if (j) j.textContent = getJudge() || "-";
-  if (c) c.textContent = getClass() || "-";
-  if (col) col.textContent = getColour() || "-";
-
-  const rShow = document.getElementById("resultsShowName");
-  if (rShow) rShow.textContent = getShow() || "-";
+function saGroupForColour(colourKey) {
+  if (colourKey === "BLACK") return "SA_BLACK";
+  if (colourKey === "BLUE" || colourKey === "LAVENDER") return "SA_BLUE_LAV";
+  return "SA_BUFF_WHITE_OTHER";
 }
 
-/************** SHOW + JUDGE LOCK **************/
+// ===================== SA TEMPLATES (100 POINTS) =====================
+const TEMPLATES = {
+  SA_BLACK: {
+    name: "THE BLACK (SA) — Total 100",
+    criteria: [
+      { key:"type", label:"Type", max:30, help:"(body 15, breast 10, saddle 5)" },
+      { key:"size", label:"Size", max:10, help:"" },
+      { key:"carriage", label:"Carriage", max:10, help:"" },
+      { key:"head", label:"Head", max:25, help:"(skull 5, comb 7, face 5, eyes 5, beak 3)" },
+      { key:"skin", label:"Skin", max:5, help:"" },
+      { key:"legs", label:"Legs and feet", max:5, help:"" },
+      { key:"plumage_condition", label:"Plumage and condition", max:10, help:"" },
+      { key:"tail", label:"Tail", max:5, help:"" }
+    ]
+  },
+
+  SA_BLUE_LAV: {
+    name: "THE BLUE AND LAVENDER (SA) — Total 100",
+    criteria: [
+      { key:"type", label:"Type", max:25, help:"" },
+      { key:"size", label:"Size (with utility qualities)", max:20, help:"" },
+      { key:"head", label:"Head", max:10, help:"" },
+      { key:"legs", label:"Legs and feet", max:10, help:"" },
+      { key:"colour_plumage", label:"Colour and plumage", max:25, help:"" },
+      { key:"condition", label:"Condition", max:10, help:"" }
+    ]
+  },
+
+  SA_BUFF_WHITE_OTHER: {
+    name: "THE BUFF, WHITE AND OTHER COLOURS (SA) — Total 100",
+    criteria: [
+      { key:"type", label:"Type", max:30, help:"" },
+      { key:"size", label:"Size", max:10, help:"" },
+      { key:"head", label:"Head", max:15, help:"" },
+      { key:"legs", label:"Legs and feet", max:10, help:"" },
+      { key:"colour_plumage", label:"Colour and plumage", max:20, help:"" },
+      { key:"condition", label:"Condition", max:15, help:"" }
+    ]
+  }
+};
+
+// ===================== DISQUALIFICATION LISTS =====================
+const DQ_GENERAL = [
+  "Side spikes on comb",
+  "White in ear-lobes",
+  "Feather or fluff on shanks or feet",
+  "Long legs",
+  "Any deformity",
+  "Yellow skin, yellow beak and yellow on the shanks or feet",
+  "Any yellow or sappiness in the white",
+  "Coarseness in head, legs or feathers of the buff",
+  "Any trimming or faking"
+];
+
+const DQ_BY_COLOUR = {
+  BLACK: [
+    "More than one spot (~12mm) of positive white in any part of plumage",
+    "Two or more feathers tipped/edged with positive white",
+    "Light coloured beak and eyes",
+    "Leg colour other than dark slate"
+  ],
+  BLUE: [
+    "Red, yellow or positive white in plumage",
+    "Light coloured beak and eyes",
+    "Leg colour other than black or blue"
+  ],
+  BUFF: [
+    "Blue shanks",
+    "Coarseness in face"
+  ],
+  WHITE: [
+    "Blue shanks"
+  ],
+  SPLASH: [
+    "Feathers not to be more than 50% black (Splash Black rule)",
+    "Feathers not to be more than 50% blue (Splash Blue rule)",
+    "Any appearance of rust in plumage"
+  ]
+};
+
+function populateDQReasons(colourKey) {
+  const sel = document.getElementById("dqReason");
+  if (!sel) return;
+
+  const list = [
+    ...DQ_GENERAL.map(x => `GENERAL: ${x}`),
+    ...(DQ_BY_COLOUR[colourKey] ? DQ_BY_COLOUR[colourKey].map(x => `COLOUR: ${x}`) : [])
+  ];
+
+  sel.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = "";
+  first.textContent = "-- Select reason --";
+  sel.appendChild(first);
+
+  list.forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    sel.appendChild(opt);
+  });
+}
+
+// ===================== FLOW =====================
+function startApp() {
+  showOnly("showScreen");
+
+  // preselect show if saved
+  const savedShow = localStorage.getItem("currentShow") || "";
+  const sel = document.getElementById("showSelect");
+  if (sel && savedShow) sel.value = savedShow;
+}
+
 function saveShowAndContinue() {
   const sel = document.getElementById("showSelect");
   const showName = (sel ? sel.value : "").trim();
   if (!showName) return alert("Please choose a show.");
 
-  setShow(showName);
-  renderHeaderLabels();
-  goJudge();
+  localStorage.setItem("currentShow", showName);
+  const lbl = document.getElementById("showNameDisplay");
+  if (lbl) lbl.textContent = showName;
+
+  showOnly("judgeScreen");
+
+  const savedJudge = localStorage.getItem("currentJudge") || "";
+  const j = document.getElementById("judgeName");
+  if (j) j.value = savedJudge;
 }
 
 function saveJudgeAndContinue() {
-  const inp = document.getElementById("judgeName");
-  const name = (inp ? inp.value : "").trim();
-  if (!name) return alert("Please enter judge name.");
+  const j = document.getElementById("judgeName");
+  const judgeName = (j ? j.value : "").trim();
+  if (!judgeName) return alert("Please enter the judge name.");
 
-  setJudge(name);
-  renderHeaderLabels();
-  goClass();
+  localStorage.setItem("currentJudge", judgeName);
+  const lbl = document.getElementById("judgeNameDisplay");
+  if (lbl) lbl.textContent = judgeName;
+
+  showOnly("classScreen");
+
+  const savedClass = localStorage.getItem("currentClass") || "";
+  const cd = document.getElementById("classSelectedDisplay");
+  if (cd) cd.textContent = savedClass || "None";
 }
 
-// Class buttons auto-next
-function pickClass(cls) {
-  setClass(cls);
-  renderHeaderLabels();
-  goColour();
-}
+// Tap class = auto-next
+function selectClass(className) {
+  localStorage.setItem("currentClass", className);
+  const cd = document.getElementById("classSelectedDisplay");
+  if (cd) cd.textContent = className;
 
-// Colour buttons auto-next
-function pickColour(col) {
-  setColour(col);
-  renderHeaderLabels();
-  goJudging();
-}
-
-function goJudging() {
-  showOnly("judgingScreen");
-  resetScoringUI();
-  // Focus Bird ID once when entering judging
   setTimeout(() => {
-    const id = document.getElementById("birdId");
-    if (id) id.focus();
-  }, 80);
+    const cs = document.getElementById("classScreen");
+    if (cs && cs.style.display !== "none") saveClassAndContinue();
+  }, 120);
 }
 
-/************** COLOUR LIST **************/
-function buildColourList() {
-  const list = document.getElementById("colourList");
-  if (!list) return;
+function saveClassAndContinue() {
+  const className = localStorage.getItem("currentClass") || "";
+  if (!className) return alert("Please select a class first.");
 
-  list.innerHTML = "";
-  ORPINGTON_COLOURS.forEach(col => {
-    const b = document.createElement("button");
-    b.className = "btn btn-neutral";
-    b.textContent = col;
-    b.onclick = () => pickColour(col);
-    list.appendChild(b);
-  });
+  const lbl = document.getElementById("classNameDisplay");
+  if (lbl) lbl.textContent = className;
+
+  showOnly("colourScreen");
+
+  const savedColour = localStorage.getItem("currentColour") || "";
+  const cd = document.getElementById("colourSelectedDisplay");
+  if (cd) cd.textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
 }
 
-/************** SLIDERS + TOTAL + LIVE VALUES **************/
-let sliders = [];
-let totalDisplay = null;
+// Tap colour = auto-next
+function selectColour(colourKey) {
+  localStorage.setItem("currentColour", colourKey);
+  const cd = document.getElementById("colourSelectedDisplay");
+  if (cd) cd.textContent = COLOUR_LABELS[colourKey] || colourKey;
 
-function initSliders() {
-  sliders = Array.from(document.querySelectorAll('input[type="range"]'));
-  totalDisplay = document.getElementById("total");
+  setTimeout(() => {
+    const cs = document.getElementById("colourScreen");
+    if (cs && cs.style.display !== "none") saveColourAndContinue();
+  }, 120);
+}
 
-  sliders.forEach(sl => {
-    sl.addEventListener("input", () => {
-      updateSliderValuePills();
-      calculateTotal();
-    });
+function saveColourAndContinue() {
+  const colourKey = localStorage.getItem("currentColour") || "";
+  if (!colourKey) return alert("Please select a colour first.");
+
+  const lbl = document.getElementById("colourNameDisplay");
+  if (lbl) lbl.textContent = COLOUR_LABELS[colourKey] || colourKey;
+
+  renderTemplateForColour(colourKey);
+  resetDQUI();
+  populateDQReasons(colourKey);
+
+  showOnly("judgingScreen");
+  lockScroll(false);
+  calculateTotal();
+
+  const birdIdInput = document.getElementById("birdId");
+  if (birdIdInput) birdIdInput.focus();
+}
+
+// Back buttons
+function backToClass() {
+  showOnly("classScreen");
+  const savedClass = localStorage.getItem("currentClass") || "";
+  const cd = document.getElementById("classSelectedDisplay");
+  if (cd) cd.textContent = savedClass || "None";
+}
+
+function backToColour() {
+  showOnly("colourScreen");
+  const savedColour = localStorage.getItem("currentColour") || "";
+  const cd = document.getElementById("colourSelectedDisplay");
+  if (cd) cd.textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
+}
+
+function backToJudgingFromResults() {
+  showOnly("judgingScreen");
+  lockScroll(false);
+}
+
+function newShowHome() {
+  const fullReset = confirm(
+    "Start a new show?\n\nOK = Clear ALL saved birds on this device.\nCancel = Keep saved birds but go back to Home."
+  );
+
+  if (fullReset) localStorage.removeItem("birds");
+
+  localStorage.removeItem("currentClass");
+  localStorage.removeItem("currentColour");
+
+  showOnly("introScreen");
+  lockScroll(true);
+}
+
+// ===================== SCORING UX (stop jumping to Bird ID) =====================
+function blurBirdId() {
+  const idEl = document.getElementById("birdId");
+  if (idEl && document.activeElement === idEl) idEl.blur();
+}
+
+// ===================== SCORING UI =====================
+function renderTemplateForColour(colourKey) {
+  const groupKey = saGroupForColour(colourKey);
+  const template = TEMPLATES[groupKey];
+
+  const container = document.getElementById("scoringContainer");
+  const tName = document.getElementById("templateName");
+  if (!container || !tName) return;
+
+  tName.textContent = template ? template.name : "No template found";
+  if (!template) { container.innerHTML = ""; return; }
+
+  let html = "";
+  template.criteria.forEach(c => {
+    html += `
+      <div class="score-row">
+        <label>${c.label} <span style="font-weight:700; opacity:0.75;">(0–${c.max})</span></label>
+        ${c.help ? `<div class="score-help">${c.help}</div>` : ""}
+        <div class="score-line">
+          <input type="range"
+                 min="0"
+                 max="${c.max}"
+                 value="0"
+                 class="score-slider"
+                 data-crit-key="${c.key}"
+                 oninput="updateSliderValue(this)"
+                 onpointerdown="blurBirdId()"
+                 ontouchstart="blurBirdId()" />
+          <span class="score-badge">0</span>
+        </div>
+      </div>
+    `;
   });
 
-  updateSliderValuePills();
+  container.innerHTML = html;
   calculateTotal();
 }
 
-function updateSliderValuePills() {
-  const map = {
-    head: "v_head",
-    body: "v_body",
-    legs: "v_legs",
-    colour: "v_colour",
-    condition: "v_condition"
-  };
-  Object.keys(map).forEach(id => {
-    const s = document.getElementById(id);
-    const pill = document.getElementById(map[id]);
-    if (s && pill) pill.textContent = String(s.value);
-  });
+function updateSliderValue(slider) {
+  const badge = slider.parentElement ? slider.parentElement.querySelector(".score-badge") : null;
+  if (badge) badge.textContent = slider.value;
+  calculateTotal();
 }
 
 function calculateTotal() {
-  let total = 0;
-  sliders.forEach(sl => total += Number(sl.value));
-  if (totalDisplay) totalDisplay.textContent = String(total);
-  return total;
-}
+  const totalDisplay = document.getElementById("total");
+  const container = document.getElementById("scoringContainer");
+  const dqToggle = document.getElementById("dqToggle");
+  if (!totalDisplay || !container) return;
 
-/************** DQ **************/
-function toggleDQ() {
-  dqOn = !dqOn;
-  const panel = document.getElementById("dqPanel");
-  const status = document.getElementById("dqStatus");
-  if (panel) panel.style.display = dqOn ? "block" : "none";
-  if (status) status.textContent = "DQ: " + (dqOn ? "Yes" : "No");
-}
-
-/************** SAVE BIRD **************/
-function getLocalBirds() {
-  return JSON.parse(localStorage.getItem("birds") || "[]");
-}
-function setLocalBirds(arr) {
-  localStorage.setItem("birds", JSON.stringify(arr));
-}
-
-function makeEntryKey(show, judge, cls, colour, birdId) {
-  // Unique key per bird entry (good enough for show day)
-  return `${show}|${judge}|${cls}|${colour}|${birdId}|${Date.now()}`;
-}
-
-function saveBird() {
-  const birdIdEl = document.getElementById("birdId");
-  const birdId = (birdIdEl ? birdIdEl.value : "").trim();
-  if (!birdId) return alert("Please enter Bird ID.");
-
-  const show = getShow();
-  const judge = getJudge();
-  const cls = getClass();
-  const colour = getColour();
-
-  if (!show || !judge || !cls || !colour) {
-    alert("Missing show/judge/class/colour. Go back and select again.");
+  if (dqToggle && dqToggle.checked) {
+    totalDisplay.textContent = "0";
     return;
   }
 
-  const comment = (document.getElementById("comment")?.value || "").trim();
+  let total = 0;
+  container.querySelectorAll(".score-slider").forEach(sl => total += Number(sl.value));
+  totalDisplay.textContent = String(total);
+}
+
+function getScoresObject() {
+  const container = document.getElementById("scoringContainer");
+  const colourKey = localStorage.getItem("currentColour") || "";
+  const groupKey = saGroupForColour(colourKey);
+  const template = TEMPLATES[groupKey];
+  const scores = {};
+  if (!container || !template) return scores;
+
+  template.criteria.forEach(c => {
+    const el = container.querySelector(`[data-crit-key="${c.key}"]`);
+    scores[c.key] = el ? Number(el.value) : 0;
+  });
+
+  return scores;
+}
+
+function prepareNextBird() {
+  const container = document.getElementById("scoringContainer");
+  if (container) {
+    container.querySelectorAll(".score-slider").forEach(sl => {
+      sl.value = 0;
+      const badge = sl.parentElement ? sl.parentElement.querySelector(".score-badge") : null;
+      if (badge) badge.textContent = "0";
+    });
+  }
+
+  const c = document.getElementById("commentBox");
+  if (c) c.value = "";
+
+  resetDQUI();
+  calculateTotal();
+
+  const birdIdInput = document.getElementById("birdId");
+  if (birdIdInput) {
+    birdIdInput.value = "";
+    birdIdInput.focus();
+  }
+}
+
+// ===================== DQ UI =====================
+function resetDQUI() {
+  const toggle = document.getElementById("dqToggle");
+  const fields = document.getElementById("dqFields");
+  const reason = document.getElementById("dqReason");
+  const note = document.getElementById("dqNote");
+
+  if (toggle) toggle.checked = false;
+  if (fields) fields.style.display = "none";
+  if (reason) reason.value = "";
+  if (note) note.value = "";
+}
+
+function toggleDQ() {
+  const toggle = document.getElementById("dqToggle");
+  const fields = document.getElementById("dqFields");
+  if (!toggle || !fields) return;
+  fields.style.display = toggle.checked ? "block" : "none";
+  calculateTotal();
+}
+
+function quickDQ() {
+  const toggle = document.getElementById("dqToggle");
+  if (toggle && !toggle.checked) {
+    toggle.checked = true;
+    toggleDQ();
+  }
+  const reason = document.getElementById("dqReason");
+  if (reason) reason.focus();
+}
+
+// ===================== SAVE / RESULTS / EXPORT =====================
+function saveBird() {
+  const birdId = document.getElementById("birdId")?.value.trim() || "";
+
+  const showName = localStorage.getItem("currentShow") || "";
+  const judgeName = localStorage.getItem("currentJudge") || "";
+  const className = localStorage.getItem("currentClass") || "";
+  const colourKey = localStorage.getItem("currentColour") || "";
+
+  if (!showName || !judgeName || !className || !colourKey) {
+    alert("Please select show, judge, class, and colour first.");
+    return;
+  }
+  if (!birdId) {
+    alert("Please enter Bird ID");
+    return;
+  }
+
+  const isDQ = document.getElementById("dqToggle")?.checked || false;
   const dqReason = (document.getElementById("dqReason")?.value || "").trim();
   const dqNote = (document.getElementById("dqNote")?.value || "").trim();
 
-  const scores = {
-    head: Number(document.getElementById("head")?.value || 0),
-    body: Number(document.getElementById("body")?.value || 0),
-    legs: Number(document.getElementById("legs")?.value || 0),
-    colour: Number(document.getElementById("colour")?.value || 0),
-    condition: Number(document.getElementById("condition")?.value || 0)
-  };
+  if (isDQ && !dqReason) {
+    alert("If Disqualified is selected, please choose a DQ reason.");
+    return;
+  }
 
-  const total = calculateTotal();
+  const comment = (document.getElementById("commentBox")?.value || "").trim();
+  const scores = getScoresObject();
+  const total = isDQ ? 0 : Number(document.getElementById("total")?.textContent || "0");
 
-  const entry = {
-    entry_key: makeEntryKey(show, judge, cls, colour, birdId),
-    device_id: deviceId,
-    show,
-    judge,
-    class: cls,
-    colour,
-    bird_id: birdId,
-    disqualified: dqOn,
-    dq_reason: dqOn ? dqReason : "",
-    dq_note: dqOn ? dqNote : "",
-    total: dqOn ? 0 : total, // DQ doesn't compete
-    scores_json: JSON.stringify(scores),
+  const bird = {
+    show: showName,
+    judge: judgeName,
+    class: className,
+    colour: colourKey,
+    id: birdId,
+    total,
+    scores,
+    disqualified: isDQ,
+    dqReason,
+    dqNote,
     comment,
     timestamp: new Date().toISOString()
   };
 
   // Save locally
-  const birds = getLocalBirds();
-  birds.push(entry);
-  setLocalBirds(birds);
+  const birds = JSON.parse(localStorage.getItem("birds") || "[]");
+  birds.push(bird);
+  localStorage.setItem("birds", JSON.stringify(birds));
 
-  // Queue for sync
-  queueEntries([entry]);
+  // Build admin entry
+  const deviceId = getDeviceId();
+  const entryKey = `${deviceId}|${bird.show}|${bird.judge}|${bird.class}|${bird.colour}|${bird.id}|${bird.timestamp}`;
 
-  // Auto-next: reset UI for next bird
-  resetScoringUI();
-  if (birdIdEl) {
-    birdIdEl.value = "";
-    setTimeout(() => birdIdEl.focus(), 50);
-  }
+  const syncEntry = {
+    entry_key: entryKey,
+    device_id: deviceId,
+    show: bird.show,
+    judge: bird.judge,
+    class: bird.class,
+    colour: bird.colour,
+    bird_id: bird.id,
+    disqualified: bird.disqualified,
+    dq_reason: bird.dqReason,
+    dq_note: bird.dqNote,
+    total: bird.total,
+    scores_json: JSON.stringify(bird.scores || {}),
+    comment: bird.comment,
+    timestamp: bird.timestamp
+  };
 
-  updateSyncStatus(navigator.onLine ? "Saved — syncing…" : "Saved offline (queued)");
-
-  // Attempt sync now if online
-  if (navigator.onLine) syncNow();
-}
-
-/************** RESET UI **************/
-function resetScoringUI() {
-  // reset dq
-  dqOn = false;
-  document.getElementById("dqPanel") && (document.getElementById("dqPanel").style.display = "none");
-  document.getElementById("dqStatus") && (document.getElementById("dqStatus").textContent = "DQ: No");
-  const dqReason = document.getElementById("dqReason");
-  const dqNote = document.getElementById("dqNote");
-  if (dqReason) dqReason.value = "";
-  if (dqNote) dqNote.value = "";
-
-  // reset sliders
-  ["head","body","legs","colour","condition"].forEach(id => {
-    const s = document.getElementById(id);
-    if (s) s.value = 0;
-  });
-  updateSliderValuePills();
-  calculateTotal();
-
-  // reset comment
-  const c = document.getElementById("comment");
-  if (c) c.value = "";
-}
-
-/************** SYNC (ALL JUDGES -> ONE SHEET) **************/
-function getQueue() {
-  return JSON.parse(localStorage.getItem("pending_entries") || "[]");
-}
-function setQueue(arr) {
-  localStorage.setItem("pending_entries", JSON.stringify(arr));
-}
-function queueEntries(entries) {
-  const q = getQueue();
-  setQueue(q.concat(entries));
-}
-
-function updateSyncStatus(text) {
-  const el = document.getElementById("syncStatus");
-  if (el) el.textContent = "Status: " + text;
-}
-
-async function syncNow() {
-  if (!navigator.onLine) {
-    updateSyncStatus("Offline (queued)");
-    return;
-  }
-
-  const q = getQueue();
-  if (!q.length) {
-    updateSyncStatus("All synced");
-    return;
-  }
-
-  updateSyncStatus("Syncing " + q.length + "…");
-
-  try {
-    const payload = { passcode: ADMIN_PASSCODE, entries: q };
-    const res = await fetch(SERVER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-
-    if (data && data.ok) {
-      setQueue([]);
-      updateSyncStatus("Synced ✅ (" + (data.inserted || 0) + ")");
-    } else {
-      updateSyncStatus("Sync failed (server reject)");
+  // Auto-send or queue
+  if (navigator.onLine) {
+    try {
+      sendEntriesToAdmin([syncEntry]);
+    } catch (e) {
+      queueForSync(syncEntry);
     }
-  } catch (err) {
-    updateSyncStatus("Sync failed (network)");
+  } else {
+    queueForSync(syncEntry);
   }
+
+  alert("Bird saved!");
+  prepareNextBird();
 }
 
-/************** EXPORT (THIS DEVICE ONLY) **************/
-function exportCSV() {
-  const birds = getLocalBirds();
-  if (!birds.length) return alert("No data on this device.");
+function showResults() {
+  const showName = localStorage.getItem("currentShow") || "";
+  const judgeName = localStorage.getItem("currentJudge") || "";
+  const className = localStorage.getItem("currentClass") || "";
 
-  let csv = "show,judge,class,colour,bird_id,disqualified,dq_reason,dq_note,total,scores_json,comment,timestamp,device_id,entry_key\n";
+  let birds = JSON.parse(localStorage.getItem("birds") || "[]");
+  birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
+
+  document.getElementById("resultsShowName").textContent = showName || "-";
+  document.getElementById("resultsJudgeName").textContent = judgeName || "-";
+  document.getElementById("resultsClassName").textContent = className || "-";
+
+  const resultsDiv = document.getElementById("resultsPageContent");
+  if (!resultsDiv) return;
+
+  if (birds.length === 0) {
+    resultsDiv.innerHTML = "<p>No birds saved yet for this show/judge/class.</p>";
+    showOnly("resultsScreen");
+    return;
+  }
+
+  // group by colour
+  const grouped = {};
   birds.forEach(b => {
-    const row = [
-      b.show, b.judge, b.class, b.colour, b.bird_id,
-      b.disqualified, b.dq_reason, b.dq_note, b.total,
-      (b.scores_json || "").replaceAll('"','""'),
-      (b.comment || "").replaceAll('"','""'),
-      b.timestamp, b.device_id, b.entry_key
-    ].map(v => `"${String(v ?? "").replaceAll('"','""')}"`).join(",");
-    csv += row + "\n";
+    if (!grouped[b.colour]) grouped[b.colour] = [];
+    grouped[b.colour].push(b);
+  });
+
+  let html = `
+    <div style="margin-bottom:12px;">
+      <button type="button" onclick="syncNow()"
+        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+        Sync Pending to Admin
+      </button>
+      <span style="margin-left:10px; font-weight:800; opacity:0.8;">
+        (offline birds will upload when online)
+      </span>
+    </div>
+  `;
+
+  Object.keys(grouped).forEach(colKey => {
+    const label = COLOUR_LABELS[colKey] || colKey;
+
+    const all = grouped[colKey];
+    const ranked = all.filter(x => !x.disqualified).sort((a, b) => Number(b.total) - Number(a.total));
+    const dq = all.filter(x => x.disqualified);
+
+    html += `<h3>${label} (Total entries: ${all.length})</h3>`;
+
+    if (ranked.length === 0) {
+      html += `<p><em>No ranked birds (all disqualified).</em></p>`;
+    } else {
+      ranked.forEach((bird, index) => {
+        let style = "";
+        if (index === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+        else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+        else if (index === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+
+        html += `<p style="${style}">${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong></p>`;
+      });
+    }
+
+    if (dq.length > 0) {
+      html += `<p style="margin-top:10px; font-weight:900;">Disqualified:</p>`;
+      dq.forEach(b => {
+        const reason = (b.dqReason || "No reason").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        html += `<p style="padding:6px 0; opacity:0.95;"><strong>Bird ${b.id}</strong> — <em>${reason}</em></p>`;
+      });
+    }
+
+    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
+  });
+
+  resultsDiv.innerHTML = html;
+  showOnly("resultsScreen");
+}
+
+function exportCSV() {
+  const showName = localStorage.getItem("currentShow") || "";
+  const judgeName = localStorage.getItem("currentJudge") || "";
+  const className = localStorage.getItem("currentClass") || "";
+
+  let birds = JSON.parse(localStorage.getItem("birds") || "[]");
+  birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
+
+  if (birds.length === 0) {
+    alert("No data to export for this show/judge/class.");
+    return;
+  }
+
+  let csv = "Show,Judge,Class,Colour,Bird ID,Disqualified,DQ Reason,DQ Note,Total,ScoresJSON,Comment,Timestamp\n";
+
+  birds.forEach(b => {
+    const colourLabel = COLOUR_LABELS[b.colour] || b.colour;
+    const scoresJson = JSON.stringify(b.scores || {}).replace(/"/g, '""');
+    const comment = (b.comment || "").replace(/"/g, '""');
+    const dqReason = (b.dqReason || "").replace(/"/g, '""');
+    const dqNote = (b.dqNote || "").replace(/"/g, '""');
+
+    csv += `"${b.show}","${b.judge}","${b.class}","${colourLabel}","${b.id}",${b.disqualified ? "YES":"NO"},"${dqReason}","${dqNote}",${b.total},"${scoresJson}","${comment}","${b.timestamp}"\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
+
+  const safeShow = showName.replace(/[^a-z0-9]+/gi, "_");
+  const safeJudge = judgeName.replace(/[^a-z0-9]+/gi, "_");
+  const safeClass = className.replace(/[^a-z0-9]+/gi, "_");
+
   const a = document.createElement("a");
   a.href = url;
-  a.download = "orpington_judging_results_device.csv";
+  a.download = `orpington_results_${safeShow}_${safeJudge}_${safeClass}.csv`;
   a.click();
+
   URL.revokeObjectURL(url);
-}
-
-/************** RESULTS (ALL JUDGES COMBINED) **************/
-async function fetchLeaderboard() {
-  const showName = getShow();
-  if (!showName) {
-    alert("No show selected.");
-    return null;
-  }
-
-  const url = `${SERVER_URL}?mode=leaderboard&show=${encodeURIComponent(showName)}&passcode=${encodeURIComponent(ADMIN_PASSCODE)}`;
-
-  try {
-    const res = await fetch(url, { method: "GET" });
-    const data = await res.json();
-    if (!data.ok) {
-      alert("Results error: " + (data.error || "unknown"));
-      return null;
-    }
-    return data;
-  } catch (err) {
-    alert("Could not load results (check internet).");
-    return null;
-  }
-}
-
-async function openResultsMode(mode) {
-  renderHeaderLabels();
-  showOnly("resultsScreen");
-
-  const content = document.getElementById("resultsContent");
-  if (!content) return;
-
-  content.innerHTML = "<p>Loading results…</p>";
-
-  const payload = await fetchLeaderboard();
-  if (!payload) {
-    content.innerHTML = "<p>Could not load results.</p>";
-    return;
-  }
-
-  const results = payload.results || {};
-
-  if (mode === "breed") content.innerHTML = renderBestInBreed(results.bestInBreed);
-  else if (mode === "variety") content.innerHTML = renderBestVariety(results.bestVariety || []);
-  else content.innerHTML = renderBestClassColour(results.bestClassColour || []);
-}
-
-function renderBestInBreed(best) {
-  if (!best || !best.winner) return "<p>No data yet.</p>";
-
-  const w = best.winner;
-  const r = best.reserve;
-
-  return `
-    <h2>Best in Breed</h2>
-    <p style="background:#ffd700;color:black;font-weight:900;padding:10px;border-radius:12px;">
-      🥇 Best in Breed: Bird ${w.bird_id} — <strong>${w.total}</strong> (${w.class} • ${w.colour})
-    </p>
-    ${r ? `
-      <p style="background:#c0c0c0;color:black;font-weight:900;padding:10px;border-radius:12px;">
-        🥈 Reserve Best in Breed: Bird ${r.bird_id} — <strong>${r.total}</strong> (${r.class} • ${r.colour})
-      </p>
-    ` : `<p>No reserve yet.</p>`}
-    <p style="opacity:0.85;">Total birds ranked: ${best.entries || 0}</p>
-  `;
-}
-
-function renderBestVariety(arr) {
-  if (!arr.length) return "<p>No data yet.</p>";
-
-  let html = `<h2>Best in Variety (Top 3 per Colour)</h2>`;
-  arr.forEach(g => {
-    const top3 = g.top3 || [];
-    html += `<h3>${g.colour} <span style="opacity:0.8;">(entries: ${g.entries || 0})</span></h3>`;
-
-    if (!top3.length) {
-      html += `<p style="opacity:0.85;">No birds.</p><hr style="border:none;border-top:1px solid #243042;margin:14px 0;">`;
-      return;
-    }
-
-    top3.forEach((b, i) => {
-      let bg = "";
-      if (i === 0) bg = "background:#ffd700;color:black;";
-      else if (i === 1) bg = "background:#c0c0c0;color:black;";
-      else if (i === 2) bg = "background:#cd7f32;color:white;";
-
-      html += `<p style="${bg}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
-        ${i+1}. Bird ${b.bird_id} — <strong>${b.total}</strong> (${b.class})
-      </p>`;
-    });
-
-    html += `<hr style="border:none;border-top:1px solid #243042;margin:14px 0;">`;
-  });
-
-  return html;
-}
-
-function renderBestClassColour(arr) {
-  if (!arr.length) return "<p>No data yet.</p>";
-
-  let html = `<h2>Best in Class + Colour (Top 5)</h2>`;
-  arr.forEach(g => {
-    const top5 = g.top5 || [];
-    html += `<h3>${g.class} — ${g.colour} <span style="opacity:0.8;">(entries: ${g.entries || 0})</span></h3>`;
-
-    if (!top5.length) {
-      html += `<p style="opacity:0.85;">No birds.</p><hr style="border:none;border-top:1px solid #243042;margin:14px 0;">`;
-      return;
-    }
-
-    top5.forEach((b, i) => {
-      let bg = "";
-      if (i === 0) bg = "background:#ffd700;color:black;";
-      else if (i === 1) bg = "background:#c0c0c0;color:black;";
-      else if (i === 2) bg = "background:#cd7f32;color:white;";
-
-      html += `<p style="${bg}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
-        ${i+1}. Bird ${b.bird_id} — <strong>${b.total}</strong>
-      </p>`;
-    });
-
-    html += `<hr style="border:none;border-top:1px solid #243042;margin:14px 0;">`;
-  });
-
-  return html;
 }
