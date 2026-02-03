@@ -22,7 +22,6 @@
       border:none; cursor:pointer; box-shadow:0 6px 15px rgba(0,0,0,0.25);
     }
 
-    /* ✅ centered blue screens */
     .screen-blue{
       text-align:center;
       min-height:100vh;
@@ -36,6 +35,7 @@
       flex-direction:column;
 
       overflow:hidden;
+      box-sizing:border-box;
     }
 
     .grid-wrap{
@@ -52,12 +52,12 @@
       padding:16px 14px; font-size:18px;
       border-radius:12px; border:none; outline:none;
       margin-bottom:22px;
+      box-sizing:border-box;
     }
 
     .subline{ margin-top:-6px; font-size:16px; }
     .muted{ opacity:0.9; }
 
-    /* Judging template rows */
     .score-row{ margin: 14px 0; }
     .score-row label{ display:block; font-weight:800; margin-bottom:6px; }
     .score-help{ font-size:13px; opacity:0.8; margin-top:-6px; margin-bottom:6px; }
@@ -69,8 +69,8 @@
       background:#e5e7eb; color:#111827;
     }
 
-    textarea{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; }
-    select{ padding:12px; border-radius:12px; border:1px solid #d1d5db; width:100%; }
+    textarea{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; box-sizing:border-box; }
+    select{ padding:12px; border-radius:12px; border:1px solid #d1d5db; width:100%; box-sizing:border-box; }
 
     .dq-box{
       margin-top:14px;
@@ -88,7 +88,7 @@
 
     .card{ background:white; border-radius:16px; padding:16px; box-shadow:0 8px 20px rgba(0,0,0,0.08); }
     label{ font-weight:800; display:block; margin-top:10px; margin-bottom:6px; }
-    input[type="text"]{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; }
+    input[type="text"]{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; box-sizing:border-box; }
     button{ margin-top:10px; margin-right:8px; }
   </style>
 </head>
@@ -142,10 +142,9 @@
     <p style="margin-top:18px; font-size:18px;">
       Selected: <strong><span id="classSelectedDisplay">None</span></strong>
     </p>
-    <!-- ❌ no Next button here -->
   </div>
 
-  <!-- ✅ COLOUR SCREEN (fixed scrolling) -->
+  <!-- ✅ COLOUR SCREEN (scroll box + backup Next button) -->
   <div id="colourScreen"
        style="
          display:none;
@@ -168,8 +167,7 @@
       Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
     </p>
 
-    <div
-      id="colourScrollBox"
+    <div id="colourScrollBox"
       style="
         width:min(760px, 95%);
         flex:1;
@@ -180,8 +178,7 @@
         border-radius:14px;
         background: rgba(255,255,255,0.08);
         box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
-      "
-    >
+      ">
       <div class="grid-wrap" style="width:100%;">
         <button class="pill" onclick="selectColour('BLACK')">Black</button>
         <button class="pill" onclick="selectColour('BLUE')">Blue</button>
@@ -211,7 +208,7 @@
   </div>
 
   <!-- ✅ JUDGING SCREEN -->
-  <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff;">
+  <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff; box-sizing:border-box;">
     <h1>🐔 Orpington Judging</h1>
 
     <p class="subline">Show: <strong><span id="showNameDisplay">Not selected</span></strong></p>
@@ -267,58 +264,73 @@
 
       <h2 style="margin-top:16px;">Total: <span id="total">0</span></h2>
 
-      <!-- ✅ Only these two buttons -->
-      <button onclick="saveBird()">Save Bird</button>
-      <button onclick="showResults()">View Results</button>
+      <button onclick="saveBird()"
+        style="padding:14px 18px; border-radius:12px; border:none; background:#16a34a; color:white; font-weight:900; cursor:pointer;">
+        Save Bird
+      </button>
+
+      <button onclick="showResults()"
+        style="padding:14px 18px; border-radius:12px; border:none; background:#1e3a8a; color:white; font-weight:900; cursor:pointer;">
+        View Results
+      </button>
     </div>
   </div>
 
-  <!-- ✅ RESULTS SCREEN (UPGRADED: buttons for the 3 leaderboards) -->
-  <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+  <!-- ✅ RESULTS SCREEN -->
+  <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff; box-sizing:border-box;">
     <h1>🏆 Results</h1>
 
     <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
 
     <div class="card">
-      <!-- ✅ Results mode buttons -->
-     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-  <button type="button" onclick="loadResultsMode('classColour')"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-    Best in Class + Colour (Top 5)
-  </button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <button type="button" onclick="loadResultsMode('classColour')"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+          Best in Class + Colour (Top 5)
+        </button>
 
-  <button type="button" onclick="loadResultsMode('variety')"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-    Best in Variety (Top 3)
-  </button>
+        <button type="button" onclick="loadResultsMode('variety')"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+          Best in Variety (Top 3)
+        </button>
 
-  <button type="button" onclick="loadResultsMode('breed')"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-    Best in Breed
-  </button>
+        <button type="button" onclick="loadResultsMode('breed')"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+          Best in Breed
+        </button>
 
-  <button type="button" onclick="backToJudgingFromResults()"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-    ← Back to Judging
-  </button>
+        <button type="button" onclick="backToJudgingFromResults()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+          ← Back to Judging
+        </button>
 
-  <button type="button" onclick="exportCSV()"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
-    Export Results
-  </button>
+        <button type="button" onclick="exportCSV()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+          Export Results (Local)
+        </button>
 
-  <button type="button" onclick="newShowHome()"
-    style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
-    New Show (Home)
-  </button>
-</div>
+        <button type="button" onclick="newShowHome()"
+          style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
+          New Show (Home)
+        </button>
+      </div>
 
-      <!-- ✅ this is where we will render leaderboard HTML -->
+      <div style="margin-bottom:10px;">
+        <button type="button" onclick="syncNow()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          Sync Pending to Admin
+        </button>
+        <span style="margin-left:10px; font-weight:800; opacity:0.8;">
+          (offline birds upload when online)
+        </span>
+      </div>
+
       <div id="resultsPageContent"></div>
     </div>
   </div>
 
   <!-- ✅ cache-bust -->
-  <script src="app.js?v=1010"></script>
+  <script src="app.js?v=2001"></script>
 </body>
 </html>
+
