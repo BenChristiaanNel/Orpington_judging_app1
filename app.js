@@ -841,3 +841,193 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
+// ===================== RESULTS OVERRIDE (SAFE FIX) =====================
+// This block makes View Results work even if earlier results code broke.
+// Paste at the VERY BOTTOM of app.js
+
+function buildLocalResultsHTML_ForCurrentShowClass() {
+  const showName = localStorage.getItem("currentShow") || "";
+  const className = localStorage.getItem("currentClass") || "";
+
+  let birds = JSON.parse(localStorage.getItem("birds") || "[]");
+
+  // Local fallback uses THIS device only (still useful if offline)
+  birds = birds.filter(b => b.show === showName && b.class === className);
+
+  if (birds.length === 0) {
+    return "<p>No birds saved yet on this device for this show/class.</p>";
+  }
+
+  // group by colour
+  const grouped = {};
+  birds.forEach(b => {
+    if (!grouped[b.colour]) grouped[b.colour] = [];
+    grouped[b.colour].push(b);
+  });
+
+  let html = `<p style="opacity:0.8;"><em>Local device results (offline fallback).</em></p>`;
+
+  Object.keys(grouped).forEach(colKey => {
+    const label = (COLOUR_LABELS && COLOUR_LABELS[colKey]) ? COLOUR_LABELS[colKey] : colKey;
+
+    const all = grouped[colKey];
+    const ranked = all.filter(x => !x.disqualified).sort((a, b) => Number(b.total) - Number(a.total));
+    const dq = all.filter(x => x.disqualified);
+
+    html += `<h3>${label} (Entries: ${all.length})</h3>`;
+
+    ranked.slice(0,5).forEach((bird, index) => {
+      let style = "";
+      if (index === 0) style = "background:#ffd700;color:black;font-weight:900;padding:8px;border-radius:8px;display:block;";
+      else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:900;padding:8px;border-radius:8px;display:block;";
+      else if (index === 2) style = "background:#cd7f32;color:white;font-weight:900;padding:8px;border-radius:8px;display:block;";
+
+      html += `<p style="${style}">${index + 1}. Bird ${bird.id} — <strong>${bird.total}</strong></p>`;
+    });
+
+    if (dq.length > 0) {
+      html += `<p style="margin-top:10px;font-weight:900;">Disqualified:</p>`;
+      dq.forEach(b => {
+        const reason = String(b.dqReason || "No reason").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        html += `<p><strong>Bird ${b.id}</strong> — <em>${reason}</em></p>`;
+      });
+    }
+
+    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
+  });
+
+  return html;
+}
+
+async function fetchLeaderboardSafe(showName) {
+  const url =
+    `${ADMIN_URL}?mode=leaderboard` +
+    `&show=${encodeURIComponent(showName)}` +
+    `&passcode=${encodeURIComponent(ADMIN_PASSCODE)}`;
+
+  const res = await fetch(url);
+  return await res.json();
+}
+
+function renderLeaderboardToHTML(data, mode) {
+  const results = (data && data.results) ? data.results : {};
+
+  // Try multiple keys because Code.gs versions differ
+  const bestClassColour = results.bestClassColour || results.classColour || [];
+  const bestVariety = results.bestVariety || results.variety || [];
+  const bestInBreed = results.bestInBreed || results.breed || results.best || null;
+
+  // Simple rendering (safe)
+  if (mode === "breed") {
+    if (!bestInBreed) return "<p>No Best in Breed yet.</p>";
+
+    const w = bestInBreed.winner || bestInBreed.bestInBreed || bestInBreed.w || null;
+    const r = bestInBreed.reserve || bestInBreed.reserveBestInBreed || bestInBreed.r || null;
+
+    let html = `<h2>Best in Breed</h2>`;
+    if (w) {
+      html += `<div style="background:#ffd700;color:black;font-weight:900;padding:10px;border-radius:12px;margin:8px 0;">
+        🥇 Best in Breed: Bird ${w.bird_id || w.birdId} — <strong>${w.total}</strong> (${w.class} • ${w.colour})
+      </div>`;
+    }
+    if (r) {
+      html += `<div style="background:#c0c0c0;color:black;font-weight:900;padding:10px;border-radius:12px;margin:8px 0;">
+        🥈 Reserve: Bird ${r.bird_id || r.birdId} — <strong>${r.total}</strong> (${r.class} • ${r.colour})
+      </div>`;
+    }
+    return html;
+  }
+
+  if (mode === "variety") {
+    if (!bestVariety.length) return "<p>No Best in Variety yet.</p>";
+    let html = `<h2>Best in Variety (Top 3)</h2>`;
+    bestVariety.forEach(g => {
+      html += `<h3>${g.colour} <span style="opacity:0.8;">(entries: ${g.entries || 0})</span></h3>`;
+      (g.top3 || g.top || []).slice(0,3).forEach((b,i) => {
+        let style = "";
+        if (i === 0) style = "background:#ffd700;color:black;";
+        else if (i === 1) style = "background:#c0c0c0;color:black;";
+        else if (i === 2) style = "background:#cd7f32;color:white;";
+        html += `<div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
+          ${i+1}. Bird ${b.bird_id || b.birdId} — <strong>${b.total}</strong> (${b.class})
+        </div>`;
+      });
+      html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
+    });
+    return html;
+  }
+
+  // default: classColour
+  if (!bestClassColour.length) return "<p>No Best in Class + Colour yet.</p>";
+  let html = `<h2>Best in Class + Colour (Top 5)</h2>`;
+  bestClassColour.forEach(g => {
+    html += `<h3>${g.class} — ${g.colour} <span style="opacity:0.8;">(entries: ${g.entries || 0})</span></h3>`;
+    (g.top5 || g.top || []).slice(0,5).forEach((b,i) => {
+      let style = "";
+      if (i === 0) style = "background:#ffd700;color:black;";
+      else if (i === 1) style = "background:#c0c0c0;color:black;";
+      else if (i === 2) style = "background:#cd7f32;color:white;";
+      html += `<div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
+        ${i+1}. Bird ${b.bird_id || b.birdId} — <strong>${b.total}</strong>
+      </div>`;
+    });
+    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
+  });
+  return html;
+}
+
+// ✅ This is what your View Results button calls
+window.showResults = function() {
+  try {
+    const showName = localStorage.getItem("currentShow") || "";
+    const className = localStorage.getItem("currentClass") || "";
+
+    const rs = document.getElementById("resultsShowName");
+    if (rs) rs.textContent = showName || "-";
+
+    // If these exist in your HTML, fill them (safe)
+    const rj = document.getElementById("resultsJudgeName");
+    if (rj) rj.textContent = "All Judges (Sheet)";
+
+    const rc = document.getElementById("resultsClassName");
+    if (rc) rc.textContent = className || "-";
+
+    showOnly("resultsScreen");
+
+    // Default mode
+    window.loadResultsMode("classColour");
+  } catch (e) {
+    alert("Results error: " + e.message);
+  }
+};
+
+// ✅ Called by your Results buttons
+window.loadResultsMode = async function(mode) {
+  const out = document.getElementById("resultsPageContent");
+  if (!out) return;
+
+  const showName = localStorage.getItem("currentShow") || "";
+  if (!showName) {
+    out.innerHTML = "<p>Please select a show first.</p>";
+    return;
+  }
+
+  out.innerHTML = "<p>Loading results…</p>";
+
+  try {
+    // Try Google Sheet leaderboard first
+    const data = await fetchLeaderboardSafe(showName);
+    if (data && data.ok === true) {
+      out.innerHTML = renderLeaderboardToHTML(data, mode);
+      return;
+    }
+
+    // Fallback
+    out.innerHTML = "<p>Could not load Sheet results. Showing local device results instead.</p>" +
+      buildLocalResultsHTML_ForCurrentShowClass();
+  } catch (e) {
+    // Offline / fetch blocked
+    out.innerHTML = "<p>No internet / blocked. Showing local device results instead.</p>" +
+      buildLocalResultsHTML_ForCurrentShowClass();
+  }
+};
