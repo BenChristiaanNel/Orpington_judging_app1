@@ -145,73 +145,70 @@
     <!-- ❌ no Next button here -->
   </div>
 
-  <!-- ✅ COLOUR SCREEN -->
- <!-- ✅ COLOUR SCREEN (fixed scrolling) -->
-<div id="colourScreen"
-     style="
-       display:none;
-       height:100vh;
-       background:#1e3a8a;
-       color:white;
-       padding:22px 16px 16px;
-       box-sizing:border-box;
+  <!-- ✅ COLOUR SCREEN (fixed scrolling) -->
+  <div id="colourScreen"
+       style="
+         display:none;
+         height:100vh;
+         background:#1e3a8a;
+         color:white;
+         padding:22px 16px 16px;
+         box-sizing:border-box;
 
-       display:flex;
-       flex-direction:column;
-       align-items:center;
-       justify-content:flex-start;
-       overflow:hidden;
-     ">
+         display:flex;
+         flex-direction:column;
+         align-items:center;
+         justify-content:flex-start;
+         overflow:hidden;
+       ">
 
-  <h1 style="font-size:34px; font-weight:800; margin:0 0 10px;">Select Colour</h1>
+    <h1 style="font-size:34px; font-weight:800; margin:0 0 10px;">Select Colour</h1>
 
-  <p style="margin:0 0 14px; font-size:16px; opacity:0.9;">
-    Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
-  </p>
+    <p style="margin:0 0 14px; font-size:16px; opacity:0.9;">
+      Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
+    </p>
 
-  <!-- ✅ This is the scroll box -->
-  <div
-    id="colourScrollBox"
-    style="
-      width:min(760px, 95%);
-      flex:1;
-      min-height:0;
-      overflow-y:auto;
-      -webkit-overflow-scrolling: touch;
-      padding:10px;
-      border-radius:14px;
-      background: rgba(255,255,255,0.08);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
-    "
-  >
-    <div class="grid-wrap" style="width:100%;">
-      <button class="pill" onclick="selectColour('BLACK')">Black</button>
-      <button class="pill" onclick="selectColour('BLUE')">Blue</button>
-      <button class="pill" onclick="selectColour('BUFF')">Buff</button>
-      <button class="pill" onclick="selectColour('WHITE')">White</button>
-      <button class="pill" onclick="selectColour('SPLASH')">Splash</button>
-      <button class="pill" onclick="selectColour('CHOCOLATE')">Chocolate</button>
-      <button class="pill" onclick="selectColour('LAVENDER')">Lavender</button>
-      <button class="pill" onclick="selectColour('JUBILEE')">Jubilee</button>
+    <div
+      id="colourScrollBox"
+      style="
+        width:min(760px, 95%);
+        flex:1;
+        min-height:0;
+        overflow-y:auto;
+        -webkit-overflow-scrolling: touch;
+        padding:10px;
+        border-radius:14px;
+        background: rgba(255,255,255,0.08);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+      "
+    >
+      <div class="grid-wrap" style="width:100%;">
+        <button class="pill" onclick="selectColour('BLACK')">Black</button>
+        <button class="pill" onclick="selectColour('BLUE')">Blue</button>
+        <button class="pill" onclick="selectColour('BUFF')">Buff</button>
+        <button class="pill" onclick="selectColour('WHITE')">White</button>
+        <button class="pill" onclick="selectColour('SPLASH')">Splash</button>
+        <button class="pill" onclick="selectColour('CHOCOLATE')">Chocolate</button>
+        <button class="pill" onclick="selectColour('LAVENDER')">Lavender</button>
+        <button class="pill" onclick="selectColour('JUBILEE')">Jubilee</button>
 
-      <button class="pill" onclick="selectColour('CUCKOO')">Cuckoo</button>
-      <button class="pill" onclick="selectColour('PARTRIDGE')">Partridge</button>
-      <button class="pill" onclick="selectColour('SILVER_LACED')">Silver Laced</button>
-      <button class="pill" onclick="selectColour('GOLD_LACED')">Gold Laced</button>
+        <button class="pill" onclick="selectColour('CUCKOO')">Cuckoo</button>
+        <button class="pill" onclick="selectColour('PARTRIDGE')">Partridge</button>
+        <button class="pill" onclick="selectColour('SILVER_LACED')">Silver Laced</button>
+        <button class="pill" onclick="selectColour('GOLD_LACED')">Gold Laced</button>
 
-      <button class="pill" onclick="selectColour('RED')">Red</button>
-      <button class="pill" onclick="selectColour('ISABEL')">Isabel</button>
-      <button class="pill" onclick="selectColour('CRELE')">Crele</button>
+        <button class="pill" onclick="selectColour('RED')">Red</button>
+        <button class="pill" onclick="selectColour('ISABEL')">Isabel</button>
+        <button class="pill" onclick="selectColour('CRELE')">Crele</button>
+      </div>
+    </div>
+
+    <div style="width:min(760px, 95%); margin-top:14px;">
+      <button class="btn-yellow" onclick="saveColourAndContinue()" style="width: min(520px, 90%);">
+        Next
+      </button>
     </div>
   </div>
-
-  <!-- Backup Next button -->
-  <div style="width:min(760px, 95%); margin-top:14px;">
-    <button class="btn-yellow" onclick="saveColourAndContinue()" style="width: min(520px, 90%);">
-      Next
-    </button>
-  </div>
-</div>
 
   <!-- ✅ JUDGING SCREEN -->
   <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff;">
@@ -276,15 +273,32 @@
     </div>
   </div>
 
-  <!-- ✅ RESULTS SCREEN -->
+  <!-- ✅ RESULTS SCREEN (UPGRADED: buttons for the 3 leaderboards) -->
   <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Results</h1>
 
     <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
-    <p class="subline">Judge: <strong><span id="resultsJudgeName">-</span></strong></p>
-    <p class="subline">Class: <strong><span id="resultsClassName">-</span></strong></p>
 
     <div class="card">
+      <!-- ✅ Results mode buttons -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+        <button type="button" onclick="loadResultsMode('classColour')"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#3b82f6; color:white; font-weight:900; cursor:pointer;">
+          Best in Class + Colour (Top 5)
+        </button>
+
+        <button type="button" onclick="loadResultsMode('variety')"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#64748b; color:white; font-weight:900; cursor:pointer;">
+          Best in Variety (Top 3)
+        </button>
+
+        <button type="button" onclick="loadResultsMode('breed')"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#16a34a; color:white; font-weight:900; cursor:pointer;">
+          Best in Breed + Reserve
+        </button>
+      </div>
+
+      <!-- existing nav buttons -->
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
         <button type="button" onclick="backToJudgingFromResults()"
           style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
@@ -302,11 +316,12 @@
         </button>
       </div>
 
+      <!-- ✅ this is where we will render leaderboard HTML -->
       <div id="resultsPageContent"></div>
     </div>
   </div>
 
   <!-- ✅ cache-bust -->
-  <script src="app.js?v=999"></script>
+  <script src="app.js?v=1000"></script>
 </body>
 </html>
