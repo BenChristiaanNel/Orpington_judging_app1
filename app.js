@@ -1,5 +1,5 @@
 // ===================== ADMIN SETTINGS =====================
-const ADMIN_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+const ADMIN_URL = "https://script.google.com/macros/s/AKfycbyg0HaUQxeged-8o5TN-sfF1IqzvpXF2EXgdxR2mhpJ1WvUqAZ6bD6Z5xWhj6wL5NOW/exec";
 const ADMIN_PASSCODE = "AVIOMED2026".trim();
 
 // ===================== SCREEN CONTROL =====================
