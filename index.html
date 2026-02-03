@@ -5,157 +5,182 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Orpington Judging</title>
 
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
-
-    .screen {
-      display: none;
-      height: 100vh;
-      background: #1e3a8a;
-      color: white;
-      padding: 24px;
-      box-sizing: border-box;
-      text-align: center;
-    }
-
-    .center {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-    }
-
-    button {
-      padding: 16px 26px;
-      font-size: 18px;
-      border-radius: 12px;
-      border: none;
-      margin: 10px;
-      cursor: pointer;
-    }
-
-    .btn-yellow { background:#facc15; color:#1e3a8a; font-weight:bold; }
-    .btn-green { background:#22c55e; color:white; }
-    .btn-gray  { background:#64748b; color:white; }
-
-    select, input {
-      padding: 14px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: none;
-      margin: 12px 0;
-      width: 90%;
-      max-width: 400px;
-    }
-
-    #judgingScreen {
-      background: #0b1220;
-      overflow: auto;
-    }
-
-    label { display:block; margin-top:14px; }
+    html, body { margin:0; padding:0; height:100%; overflow:hidden; }
   </style>
 </head>
 
 <body>
 
-<!-- INTRO -->
-<div id="introScreen" class="screen" style="display:block;">
-  <div class="center">
-    <h1>Orpington Judging</h1>
-    <button class="btn-yellow" onclick="goShow()">Start Judging</button>
+  <!-- HOME / INTRO -->
+  <div id="introScreen" class="screen screen-blue">
+    <div class="centerWrap">
+      <h1 class="title">Orpington Show Judging</h1>
+      <img src="orpington.png" alt="Orpington" class="heroImg">
+      <button class="btn btn-primary" onclick="goShow()">Start Judging</button>
+      <button class="btn btn-neutral" onclick="unlockJudge()">Change Show / Judge</button>
+    </div>
   </div>
-</div>
 
-<!-- SHOW -->
-<div id="showScreen" class="screen">
-  <div class="center">
-    <h2>Select Show</h2>
-    <select id="showSelect">
-      <option value="">-- choose --</option>
-      <option>AvioMed Young Chicken Show 2026</option>
-      <option>AvioMed Nationals 2026</option>
-      <option>AvioMed Orpington Show 2026</option>
-    </select>
-    <button class="btn-yellow" onclick="saveShow()">Next</button>
+  <!-- SHOW SCREEN -->
+  <div id="showScreen" class="screen screen-blue" style="display:none;">
+    <div class="centerWrap">
+      <h1 class="titleSmall">Select Show</h1>
+
+      <select id="showSelect" class="select">
+        <option value="">-- Choose a show --</option>
+        <option value="AvioMed Young Chicken Show 2026">AvioMed Young Chicken Show 2026</option>
+        <option value="AvioMed Nationals 2026">AvioMed Nationals 2026</option>
+        <option value="AvioMed Orpington Show 2026">AvioMed Orpington Show 2026</option>
+      </select>
+
+      <button class="btn btn-primary" onclick="saveShowAndContinue()">Next</button>
+      <button class="btn btn-back" onclick="goHome()">Back</button>
+    </div>
   </div>
-</div>
 
-<!-- JUDGE -->
-<div id="judgeScreen" class="screen">
-  <div class="center">
-    <h2>Judge Name</h2>
-    <input id="judgeName" placeholder="Enter judge name">
-    <button class="btn-yellow" onclick="saveJudge()">Next</button>
+  <!-- JUDGE NAME SCREEN -->
+  <div id="judgeScreen" class="screen screen-blue" style="display:none;">
+    <div class="centerWrap">
+      <h1 class="titleSmall">Judge Name</h1>
+      <input id="judgeName" class="textInput" placeholder="Enter judge name" />
+      <button class="btn btn-primary" onclick="saveJudgeAndContinue()">Next</button>
+      <button class="btn btn-back" onclick="goShow()">Back</button>
+    </div>
   </div>
-</div>
 
-<!-- CLASS -->
-<div id="classScreen" class="screen">
-  <div class="center">
-    <h2>Select Class</h2>
-    <button class="btn-green" onclick="pickClass('PULLET')">Pullet</button>
-    <button class="btn-green" onclick="pickClass('COCKEREL')">Cockerel</button>
-    <button class="btn-green" onclick="pickClass('HEN')">Hen</button>
-    <button class="btn-green" onclick="pickClass('COCK')">Cock</button>
+  <!-- CLASS SCREEN -->
+  <div id="classScreen" class="screen screen-blue" style="display:none;">
+    <div class="centerWrap">
+      <h1 class="titleSmall">Select Class</h1>
+
+      <div class="grid2">
+        <button class="btn btn-neutral" onclick="pickClass('COCKEREL')">Cockerel</button>
+        <button class="btn btn-neutral" onclick="pickClass('PULLET')">Pullet</button>
+        <button class="btn btn-neutral" onclick="pickClass('COCK')">Cock</button>
+        <button class="btn btn-neutral" onclick="pickClass('HEN')">Hen</button>
+      </div>
+
+      <button class="btn btn-back" onclick="goJudge()">Back</button>
+    </div>
   </div>
-</div>
 
-<!-- COLOUR -->
-<div id="colourScreen" class="screen">
-  <div class="center">
-    <h2>Select Colour</h2>
-    <select id="colourSelect">
-      <option>BLACK</option>
-      <option>BLUE</option>
-      <option>BUFF</option>
-      <option>SPLASH</option>
-      <option>WHITE</option>
-      <option>CHOCOLATE</option>
-      <option>CUCKOO</option>
-      <option>SPANGLED</option>
-      <option>LACED</option>
-    </select>
-    <button class="btn-yellow" onclick="startJudging()">Start</button>
+  <!-- COLOUR SCREEN -->
+  <div id="colourScreen" class="screen screen-blue" style="display:none;">
+    <div class="centerWrap">
+      <h1 class="titleSmall">Select Colour</h1>
+
+      <div id="colourList" class="scrollList"></div>
+
+      <button class="btn btn-back" onclick="goClass()">Back</button>
+    </div>
   </div>
-</div>
 
-<!-- JUDGING -->
-<div id="judgingScreen" class="screen">
-  <h2>Judging</h2>
-  <p><strong id="context"></strong></p>
+  <!-- JUDGING SCREEN -->
+  <div id="judgingScreen" class="screen screen-dark" style="display:none; overflow:auto;">
+    <div class="topBar">
+      <div>
+        <div class="metaLine">Show: <strong><span id="showNameDisplay">-</span></strong></div>
+        <div class="metaLine">Judge: <strong><span id="judgeNameDisplay">-</span></strong></div>
+        <div class="metaLine">Class: <strong><span id="classDisplay">-</span></strong> • Colour: <strong><span id="colourDisplay">-</span></strong></div>
+      </div>
+      <button class="btnSmall btn-back" onclick="goColour()">Change Colour</button>
+    </div>
 
-  <label>Bird ID</label>
-  <input id="birdId">
+    <div class="card">
+      <label>Bird ID</label>
+      <input type="text" id="birdId" class="textInput" />
 
-  <label>Head</label>
-  <input type="range" min="0" max="20" id="head">
+      <div class="row2">
+        <button class="btn btn-danger" onclick="toggleDQ()">Disqualify</button>
+        <div id="dqStatus" class="dqPill">DQ: No</div>
+      </div>
 
-  <label>Body</label>
-  <input type="range" min="0" max="30" id="body">
+      <div id="dqPanel" style="display:none;">
+        <label>DQ Reason</label>
+        <select id="dqReason" class="select">
+          <option value="">-- Select reason --</option>
+          <option value="Wrong colour / variety">Wrong colour / variety</option>
+          <option value="Severe defect">Severe defect</option>
+          <option value="Poor condition / illness">Poor condition / illness</option>
+          <option value="Wrong class / sex">Wrong class / sex</option>
+          <option value="Other">Other</option>
+        </select>
+        <label>DQ Note</label>
+        <input id="dqNote" class="textInput" placeholder="Short note (optional)" />
+      </div>
 
-  <label>Legs</label>
-  <input type="range" min="0" max="15" id="legs">
+      <!-- Sliders with live values -->
+      <div class="sliderBlock">
+        <div class="sliderHead"><span>Head & Comb</span><span id="v_head" class="valPill">0</span></div>
+        <input type="range" min="0" max="20" id="head" value="0">
+      </div>
 
-  <label>Colour</label>
-  <input type="range" min="0" max="25" id="colourScore">
+      <div class="sliderBlock">
+        <div class="sliderHead"><span>Body & Type</span><span id="v_body" class="valPill">0</span></div>
+        <input type="range" min="0" max="30" id="body" value="0">
+      </div>
 
-  <label>Condition</label>
-  <input type="range" min="0" max="10" id="condition">
+      <div class="sliderBlock">
+        <div class="sliderHead"><span>Legs & Feet</span><span id="v_legs" class="valPill">0</span></div>
+        <input type="range" min="0" max="15" id="legs" value="0">
+      </div>
 
-  <h3>Total: <span id="total">0</span></h3>
+      <div class="sliderBlock">
+        <div class="sliderHead"><span>Plumage Colour</span><span id="v_colour" class="valPill">0</span></div>
+        <input type="range" min="0" max="25" id="colour" value="0">
+      </div>
 
-  <button class="btn-green" onclick="saveBird()">Save Bird</button>
-  <button class="btn-gray" onclick="viewResults()">View Results</button>
-</div>
+      <div class="sliderBlock">
+        <div class="sliderHead"><span>Condition</span><span id="v_condition" class="valPill">0</span></div>
+        <input type="range" min="0" max="10" id="condition" value="0">
+      </div>
 
-<script src="app.js?v=4000"></script>
+      <h2 class="totalLine">Total: <span id="total">0</span></h2>
+
+      <label>Comment (optional)</label>
+      <input id="comment" class="textInput" placeholder="Quick note…" />
+
+      <button class="btn btn-save" onclick="saveBird()">Save Bird</button>
+      <button class="btn btn-results" onclick="openResultsMode('classColour')">View Results</button>
+
+      <div class="syncLine">
+        <span id="syncStatus">Status: Ready</span>
+        <button class="btnSmall btn-neutral" onclick="syncNow()">Sync Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="resultsScreen" class="screen screen-dark" style="display:none; overflow:auto;">
+    <div class="topBar">
+      <div>
+        <div class="metaLine">Show: <strong><span id="resultsShowName">-</span></strong></div>
+        <div class="metaLine">All judges combined (from Google Sheet)</div>
+      </div>
+      <button class="btnSmall btn-back" onclick="backToJudging()">Back</button>
+    </div>
+
+    <div class="card">
+      <div class="grid2">
+        <button class="btn btn-results" onclick="openResultsMode('classColour')">Best in Class + Colour (Top 5)</button>
+        <button class="btn btn-neutral" onclick="openResultsMode('variety')">Best in Variety (Top 3)</button>
+        <button class="btn btn-save" onclick="openResultsMode('breed')">Best in Breed</button>
+        <button class="btn btn-neutral" onclick="syncNow()">Sync Now</button>
+      </div>
+
+      <div id="resultsContent" style="margin-top:14px;"></div>
+
+      <div style="margin-top:14px;">
+        <button class="btn btn-danger" onclick="resetShowFlow()">New Show (Home)</button>
+        <button class="btn btn-neutral" onclick="exportCSV()">Export (This Device)</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=3000"></script>
 </body>
 </html>
