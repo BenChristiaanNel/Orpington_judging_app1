@@ -5,308 +5,157 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Orpington Judging</title>
 
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
-
   <style>
-    html, body { margin:0; padding:0; height:100%; overflow:hidden; font-family: Arial, sans-serif; }
-
-    .btn-yellow{
-      padding:22px 36px; font-size:22px; font-weight:700;
-      border-radius:14px; background:#facc15; color:#1e3a8a;
-      border:none; cursor:pointer; box-shadow:0 6px 15px rgba(0,0,0,0.35);
-    }
-    .btn-white{
-      padding:22px 36px; font-size:22px; font-weight:700;
-      border-radius:14px; background:#ffffff; color:#1e3a8a;
-      border:none; cursor:pointer; box-shadow:0 6px 15px rgba(0,0,0,0.25);
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
     }
 
-    /* ✅ centered blue screens */
-    .screen-blue{
-      text-align:center;
-      min-height:100vh;
-      padding:24px 16px;
-      background:#1e3a8a;
-      color:white;
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-
-      overflow:hidden;
+    .screen {
+      display: none;
+      height: 100vh;
+      background: #1e3a8a;
+      color: white;
+      padding: 24px;
+      box-sizing: border-box;
+      text-align: center;
     }
 
-    .grid-wrap{
-      display:flex; flex-wrap:wrap; gap:14px; justify-content:center;
-      width:min(760px, 95%);
-    }
-    .pill{
-      padding:14px 18px; font-size:18px; font-weight:800;
-      border-radius:14px; background:#facc15; color:#1e3a8a;
-      border:none; cursor:pointer;
-    }
-    .input-wide{
-      width:min(520px, 90%);
-      padding:16px 14px; font-size:18px;
-      border-radius:12px; border:none; outline:none;
-      margin-bottom:22px;
+    .center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
     }
 
-    .subline{ margin-top:-6px; font-size:16px; }
-    .muted{ opacity:0.9; }
-
-    /* Judging template rows */
-    .score-row{ margin: 14px 0; }
-    .score-row label{ display:block; font-weight:800; margin-bottom:6px; }
-    .score-help{ font-size:13px; opacity:0.8; margin-top:-6px; margin-bottom:6px; }
-    .score-line{ display:flex; align-items:center; gap:10px; }
-    .score-line input[type="range"]{ width:100%; }
-    .score-badge{
-      min-width:44px; text-align:center; font-weight:900;
-      padding:6px 10px; border-radius:10px;
-      background:#e5e7eb; color:#111827;
+    button {
+      padding: 16px 26px;
+      font-size: 18px;
+      border-radius: 12px;
+      border: none;
+      margin: 10px;
+      cursor: pointer;
     }
 
-    textarea{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; }
-    select{ padding:12px; border-radius:12px; border:1px solid #d1d5db; width:100%; }
+    .btn-yellow { background:#facc15; color:#1e3a8a; font-weight:bold; }
+    .btn-green { background:#22c55e; color:white; }
+    .btn-gray  { background:#64748b; color:white; }
 
-    .dq-box{
-      margin-top:14px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid #e5e7eb;
-      background:#f9fafb;
+    select, input {
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      margin: 12px 0;
+      width: 90%;
+      max-width: 400px;
     }
 
-    .danger{
-      background:#dc2626; color:white; border:none;
-      padding:12px 16px; border-radius:12px; font-weight:800;
-      cursor:pointer;
+    #judgingScreen {
+      background: #0b1220;
+      overflow: auto;
     }
 
-    .card{ background:white; border-radius:16px; padding:16px; box-shadow:0 8px 20px rgba(0,0,0,0.08); }
-    label{ font-weight:800; display:block; margin-top:10px; margin-bottom:6px; }
-    input[type="text"]{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; }
-    button{ margin-top:10px; margin-right:8px; }
+    label { display:block; margin-top:14px; }
   </style>
 </head>
 
 <body>
 
-  <!-- ✅ INTRO SCREEN -->
-  <div id="introScreen" class="screen-blue" style="display:flex;">
-    <h1 style="font-size:42px; font-weight:800; margin-bottom:18px;">Orpington Show Judging</h1>
-
-    <img src="orpington.png" alt="Orpington"
-      style="max-width:72%; border-radius:18px; margin:18px 0 26px; box-shadow:0 10px 25px rgba(0,0,0,0.4);" />
-
-    <button class="btn-yellow" onclick="startApp()">Start Judging</button>
-  </div>
-
-  <!-- ✅ SHOW SCREEN -->
-  <div id="showScreen" class="screen-blue" style="display:none;">
-    <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Select Show</h1>
-
-    <select id="showSelect" class="input-wide">
-      <option value="">-- Choose a show --</option>
-      <option value="AvioMed Young Chicken Show 2026">AvioMed Young Chicken Show 2026</option>
-      <option value="AvioMed Nationals 2026">AvioMed Nationals 2026</option>
-      <option value="AvioMed Orpington Show 2026">AvioMed Orpington Show 2026</option>
-    </select>
-
-    <button class="btn-yellow" onclick="saveShowAndContinue()">Next</button>
-  </div>
-
-  <!-- ✅ JUDGE SCREEN -->
-  <div id="judgeScreen" class="screen-blue" style="display:none;">
-    <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Judge Name</h1>
-
-    <input id="judgeName" class="input-wide" type="text" placeholder="Enter judge name" />
-
-    <button class="btn-yellow" onclick="saveJudgeAndContinue()">Next</button>
-  </div>
-
-  <!-- ✅ CLASS SCREEN (auto-next on tap) -->
-  <div id="classScreen" class="screen-blue" style="display:none;">
-    <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Select Class</h1>
-
-    <div class="grid-wrap">
-      <button class="pill" onclick="selectClass('PULLET')">Pullet</button>
-      <button class="pill" onclick="selectClass('COCKEREL')">Cockerel</button>
-      <button class="pill" onclick="selectClass('HEN')">Hen</button>
-      <button class="pill" onclick="selectClass('COCK')">Cock</button>
-    </div>
-
-    <p style="margin-top:18px; font-size:18px;">
-      Selected: <strong><span id="classSelectedDisplay">None</span></strong>
-    </p>
-    <!-- ❌ no Next button here -->
-  </div>
-
-  <!-- ✅ COLOUR SCREEN -->
- <!-- ✅ COLOUR SCREEN (fixed scrolling) -->
-<div id="colourScreen"
-     style="
-       display:none;
-       height:100vh;
-       background:#1e3a8a;
-       color:white;
-       padding:22px 16px 16px;
-       box-sizing:border-box;
-
-       display:flex;
-       flex-direction:column;
-       align-items:center;
-       justify-content:flex-start;
-       overflow:hidden;
-     ">
-
-  <h1 style="font-size:34px; font-weight:800; margin:0 0 10px;">Select Colour</h1>
-
-  <p style="margin:0 0 14px; font-size:16px; opacity:0.9;">
-    Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
-  </p>
-
-  <!-- ✅ This is the scroll box -->
-  <div
-    id="colourScrollBox"
-    style="
-      width:min(760px, 95%);
-      flex:1;
-      min-height:0;
-      overflow-y:auto;
-      -webkit-overflow-scrolling: touch;
-      padding:10px;
-      border-radius:14px;
-      background: rgba(255,255,255,0.08);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
-    "
-  >
-    <div class="grid-wrap" style="width:100%;">
-      <button class="pill" onclick="selectColour('BLACK')">Black</button>
-      <button class="pill" onclick="selectColour('BLUE')">Blue</button>
-      <button class="pill" onclick="selectColour('BUFF')">Buff</button>
-      <button class="pill" onclick="selectColour('WHITE')">White</button>
-      <button class="pill" onclick="selectColour('SPLASH')">Splash</button>
-      <button class="pill" onclick="selectColour('CHOCOLATE')">Chocolate</button>
-      <button class="pill" onclick="selectColour('LAVENDER')">Lavender</button>
-      <button class="pill" onclick="selectColour('JUBILEE')">Jubilee</button>
-
-      <button class="pill" onclick="selectColour('CUCKOO')">Cuckoo</button>
-      <button class="pill" onclick="selectColour('PARTRIDGE')">Partridge</button>
-      <button class="pill" onclick="selectColour('SILVER_LACED')">Silver Laced</button>
-      <button class="pill" onclick="selectColour('GOLD_LACED')">Gold Laced</button>
-
-      <button class="pill" onclick="selectColour('RED')">Red</button>
-      <button class="pill" onclick="selectColour('ISABEL')">Isabel</button>
-      <button class="pill" onclick="selectColour('CRELE')">Crele</button>
-    </div>
-  </div>
-
-  <!-- Backup Next button -->
-  <div style="width:min(760px, 95%); margin-top:14px;">
-    <button class="btn-yellow" onclick="saveColourAndContinue()" style="width: min(520px, 90%);">
-      Next
-    </button>
+<!-- INTRO -->
+<div id="introScreen" class="screen" style="display:block;">
+  <div class="center">
+    <h1>Orpington Judging</h1>
+    <button class="btn-yellow" onclick="goShow()">Start Judging</button>
   </div>
 </div>
 
-  <!-- ✅ JUDGING SCREEN -->
-  <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff;">
-    <h1>🐔 Orpington Judging</h1>
-
-    <p class="subline">Show: <strong><span id="showNameDisplay">Not selected</span></strong></p>
-    <p class="subline">Judge: <strong><span id="judgeNameDisplay">Not selected</span></strong></p>
-    <p class="subline">Class: <strong><span id="classNameDisplay">Not selected</span></strong></p>
-    <p class="subline">Colour: <strong><span id="colourNameDisplay">Not selected</span></strong></p>
-
-    <div class="card">
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-        <button type="button" onclick="backToClass()"
-          style="padding:12px 14px; border-radius:12px; border:none; background:#1e3a8a; color:#ffffff; font-weight:900; cursor:pointer;">
-          ← Change Class (Sex)
-        </button>
-
-        <button type="button" onclick="backToColour()"
-          style="padding:12px 14px; border-radius:12px; border:none; background:#0f766e; color:#ffffff; font-weight:900; cursor:pointer;">
-          ← Change Colour
-        </button>
-      </div>
-
-      <label>Bird ID</label>
-      <input type="text" id="birdId" />
-
-      <div style="margin-top:14px;">
-        <h2 style="margin-bottom:6px;">SA Scale of Points</h2>
-        <div id="templateName" class="muted" style="margin-bottom:10px;"></div>
-        <div id="scoringContainer"></div>
-      </div>
-
-      <div class="dq-box">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-          <label style="margin:0;">
-            <input type="checkbox" id="dqToggle" onchange="toggleDQ()" />
-            Disqualified
-          </label>
-
-          <button class="danger" type="button" onclick="quickDQ()">
-            DQ (Pick reason)
-          </button>
-        </div>
-
-        <div id="dqFields" style="display:none; margin-top:10px;">
-          <label>DQ Reason</label>
-          <select id="dqReason"></select>
-
-          <label style="margin-top:10px;">DQ Note (optional)</label>
-          <input type="text" id="dqNote" placeholder="Extra note (optional)" />
-        </div>
-      </div>
-
-      <label style="margin-top:14px;">Judge Comments</label>
-      <textarea id="commentBox" rows="3" placeholder="Optional comment..."></textarea>
-
-      <h2 style="margin-top:16px;">Total: <span id="total">0</span></h2>
-
-      <!-- ✅ Only these two buttons -->
-      <button onclick="saveBird()">Save Bird</button>
-      <button onclick="showResults()">View Results</button>
-    </div>
+<!-- SHOW -->
+<div id="showScreen" class="screen">
+  <div class="center">
+    <h2>Select Show</h2>
+    <select id="showSelect">
+      <option value="">-- choose --</option>
+      <option>AvioMed Young Chicken Show 2026</option>
+      <option>AvioMed Nationals 2026</option>
+      <option>AvioMed Orpington Show 2026</option>
+    </select>
+    <button class="btn-yellow" onclick="saveShow()">Next</button>
   </div>
+</div>
 
-  <!-- ✅ RESULTS SCREEN -->
-  <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
-    <h1>🏆 Results</h1>
-
-    <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
-    <p class="subline">Judge: <strong><span id="resultsJudgeName">-</span></strong></p>
-    <p class="subline">Class: <strong><span id="resultsClassName">-</span></strong></p>
-
-    <div class="card">
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-        <button type="button" onclick="backToJudgingFromResults()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
-          ← Back to Judging
-        </button>
-
-        <button type="button" onclick="exportCSV()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
-          Export Results
-        </button>
-
-        <button type="button" onclick="newShowHome()"
-          style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
-          New Show (Home)
-        </button>
-      </div>
-
-      <div id="resultsPageContent"></div>
-    </div>
+<!-- JUDGE -->
+<div id="judgeScreen" class="screen">
+  <div class="center">
+    <h2>Judge Name</h2>
+    <input id="judgeName" placeholder="Enter judge name">
+    <button class="btn-yellow" onclick="saveJudge()">Next</button>
   </div>
+</div>
 
-  <!-- ✅ cache-bust -->
-  <script src="app.js?v=2000"></script>
+<!-- CLASS -->
+<div id="classScreen" class="screen">
+  <div class="center">
+    <h2>Select Class</h2>
+    <button class="btn-green" onclick="pickClass('PULLET')">Pullet</button>
+    <button class="btn-green" onclick="pickClass('COCKEREL')">Cockerel</button>
+    <button class="btn-green" onclick="pickClass('HEN')">Hen</button>
+    <button class="btn-green" onclick="pickClass('COCK')">Cock</button>
+  </div>
+</div>
+
+<!-- COLOUR -->
+<div id="colourScreen" class="screen">
+  <div class="center">
+    <h2>Select Colour</h2>
+    <select id="colourSelect">
+      <option>BLACK</option>
+      <option>BLUE</option>
+      <option>BUFF</option>
+      <option>SPLASH</option>
+      <option>WHITE</option>
+      <option>CHOCOLATE</option>
+      <option>CUCKOO</option>
+      <option>SPANGLED</option>
+      <option>LACED</option>
+    </select>
+    <button class="btn-yellow" onclick="startJudging()">Start</button>
+  </div>
+</div>
+
+<!-- JUDGING -->
+<div id="judgingScreen" class="screen">
+  <h2>Judging</h2>
+  <p><strong id="context"></strong></p>
+
+  <label>Bird ID</label>
+  <input id="birdId">
+
+  <label>Head</label>
+  <input type="range" min="0" max="20" id="head">
+
+  <label>Body</label>
+  <input type="range" min="0" max="30" id="body">
+
+  <label>Legs</label>
+  <input type="range" min="0" max="15" id="legs">
+
+  <label>Colour</label>
+  <input type="range" min="0" max="25" id="colourScore">
+
+  <label>Condition</label>
+  <input type="range" min="0" max="10" id="condition">
+
+  <h3>Total: <span id="total">0</span></h3>
+
+  <button class="btn-green" onclick="saveBird()">Save Bird</button>
+  <button class="btn-gray" onclick="viewResults()">View Results</button>
+</div>
+
+<script src="app.js?v=4000"></script>
 </body>
 </html>
