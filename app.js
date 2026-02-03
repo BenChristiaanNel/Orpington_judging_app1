@@ -16,7 +16,9 @@ function showOnly(screenId) {
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.display = (id === screenId) ? (id === "judgingScreen" || id === "resultsScreen" ? "block" : "flex") : "none";
+    el.style.display = (id === screenId)
+      ? (id === "judgingScreen" || id === "resultsScreen" ? "block" : "flex")
+      : "none";
   });
 
   lockScroll(!(screenId === "judgingScreen" || screenId === "resultsScreen"));
@@ -493,7 +495,7 @@ function quickDQ() {
   if (reason) reason.focus();
 }
 
-// ===================== SAVE / RESULTS / EXPORT =====================
+// ===================== SAVE =====================
 function saveBird() {
   const birdId = document.getElementById("birdId")?.value.trim() || "";
 
@@ -580,7 +582,89 @@ function saveBird() {
   prepareNextBird();
 }
 
-function showResults() {
+// ===================== RESULTS (LOCAL + GOOGLE SHEET LEADERBOARD) =====================
+
+// Helper: escape HTML
+function esc(s) {
+  return String(s || "").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// Fetch leaderboard JSON from Apps Script (ALL judges / ALL phones)
+async function fetchLeaderboard(showName) {
+  const url =
+    `${ADMIN_URL}?mode=leaderboard` +
+    `&show=${encodeURIComponent(showName)}` +
+    `&passcode=${encodeURIComponent(ADMIN_PASSCODE)}`;
+
+  const r = await fetch(url, { method: "GET" });
+  return await r.json();
+}
+
+// Render functions for leaderboard data (flexible to structure)
+function renderBestInBreed(best) {
+  if (!best || (!best.winner && !best.bestInBreed)) return "<p>No data yet.</p>";
+
+  const w = best.winner || best.bestInBreed || null;
+  const rv = best.reserve || best.reserveBestInBreed || null;
+
+  let html = `<h2>Best in Breed</h2>`;
+  if (w) {
+    html += `<div style="background:#ffd700;color:black;font-weight:900;padding:10px;border-radius:12px;margin:8px 0;">
+      🥇 Best in Breed: Bird ${esc(w.bird_id || w.birdId)} — <strong>${esc(w.total)}</strong> (${esc(w.class)} • ${esc(w.colour)})
+    </div>`;
+  }
+  if (rv) {
+    html += `<div style="background:#c0c0c0;color:black;font-weight:900;padding:10px;border-radius:12px;margin:8px 0;">
+      🥈 Reserve: Bird ${esc(rv.bird_id || rv.birdId)} — <strong>${esc(rv.total)}</strong> (${esc(rv.class)} • ${esc(rv.colour)})
+    </div>`;
+  }
+  return html;
+}
+
+function renderVariety(groups) {
+  if (!groups || !groups.length) return "<p>No data yet.</p>";
+
+  let html = `<h2>Best in Variety (Top 3)</h2>`;
+  groups.forEach(g => {
+    html += `<h3>${esc(g.colour)} <span style="opacity:0.8;">(entries: ${esc(g.entries || 0)})</span></h3>`;
+    const top = g.top3 || g.top || [];
+    top.slice(0,3).forEach((b,i) => {
+      let style = "";
+      if (i === 0) style = "background:#ffd700;color:black;";
+      else if (i === 1) style = "background:#c0c0c0;color:black;";
+      else if (i === 2) style = "background:#cd7f32;color:white;";
+      html += `<div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
+        ${i+1}. Bird ${esc(b.bird_id || b.birdId)} — <strong>${esc(b.total)}</strong> (${esc(b.class)})
+      </div>`;
+    });
+    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
+  });
+  return html;
+}
+
+function renderClassColour(groups) {
+  if (!groups || !groups.length) return "<p>No data yet.</p>";
+
+  let html = `<h2>Best in Class + Colour (Top 5)</h2>`;
+  groups.forEach(g => {
+    html += `<h3>${esc(g.class)} — ${esc(g.colour)} <span style="opacity:0.8;">(entries: ${esc(g.entries || 0)})</span></h3>`;
+    const top = g.top5 || g.top || [];
+    top.slice(0,5).forEach((b,i) => {
+      let style = "";
+      if (i === 0) style = "background:#ffd700;color:black;";
+      else if (i === 1) style = "background:#c0c0c0;color:black;";
+      else if (i === 2) style = "background:#cd7f32;color:white;";
+      html += `<div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
+        ${i+1}. Bird ${esc(b.bird_id || b.birdId)} — <strong>${esc(b.total)}</strong>
+      </div>`;
+    });
+    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
+  });
+  return html;
+}
+
+// Local device results (your original logic), used as fallback
+function renderLocalResultsHTML() {
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
   const className = localStorage.getItem("currentClass") || "";
@@ -588,17 +672,8 @@ function showResults() {
   let birds = JSON.parse(localStorage.getItem("birds") || "[]");
   birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
 
-  document.getElementById("resultsShowName").textContent = showName || "-";
-  document.getElementById("resultsJudgeName").textContent = judgeName || "-";
-  document.getElementById("resultsClassName").textContent = className || "-";
-
-  const resultsDiv = document.getElementById("resultsPageContent");
-  if (!resultsDiv) return;
-
   if (birds.length === 0) {
-    resultsDiv.innerHTML = "<p>No birds saved yet for this show/judge/class.</p>";
-    showOnly("resultsScreen");
-    return;
+    return "<p>No birds saved yet for this show/judge/class.</p>";
   }
 
   // group by colour
@@ -618,6 +693,7 @@ function showResults() {
         (offline birds will upload when online)
       </span>
     </div>
+    <p style="opacity:0.85;"><em>Offline/local results (this device only).</em></p>
   `;
 
   Object.keys(grouped).forEach(colKey => {
@@ -638,25 +714,93 @@ function showResults() {
         else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
         else if (index === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
 
-        html += `<p style="${style}">${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong></p>`;
+        html += `<p style="${style}">${index + 1}. Bird ${esc(bird.id)} – <strong>${esc(bird.total)}</strong></p>`;
       });
     }
 
     if (dq.length > 0) {
       html += `<p style="margin-top:10px; font-weight:900;">Disqualified:</p>`;
       dq.forEach(b => {
-        const reason = (b.dqReason || "No reason").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-        html += `<p style="padding:6px 0; opacity:0.95;"><strong>Bird ${b.id}</strong> — <em>${reason}</em></p>`;
+        const reason = esc(b.dqReason || "No reason");
+        html += `<p style="padding:6px 0; opacity:0.95;"><strong>Bird ${esc(b.id)}</strong> — <em>${reason}</em></p>`;
       });
     }
 
     html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
   });
 
-  resultsDiv.innerHTML = html;
-  showOnly("resultsScreen");
+  return html;
 }
 
+// MAIN entry point from button: opens results screen + loads default mode
+function showResults() {
+  const showName = localStorage.getItem("currentShow") || "";
+  const judgeName = localStorage.getItem("currentJudge") || "";
+  const className = localStorage.getItem("currentClass") || "";
+
+  // Fill labels (your HTML has these; we keep them)
+  const rs = document.getElementById("resultsShowName");
+  const rj = document.getElementById("resultsJudgeName");
+  const rc = document.getElementById("resultsClassName");
+
+  if (rs) rs.textContent = showName || "-";
+
+  // You said you don’t need judge in results — so show “All Judges”
+  if (rj) rj.textContent = "All Judges (Google Sheet)";
+  if (rc) rc.textContent = className || "-";
+
+  showOnly("resultsScreen");
+
+  // Default results view
+  loadResultsMode("classColour");
+}
+
+// Called by your 3 buttons in index.html
+async function loadResultsMode(mode) {
+  const out = document.getElementById("resultsPageContent");
+  if (!out) return;
+
+  const showName = localStorage.getItem("currentShow") || "";
+  if (!showName) {
+    out.innerHTML = "<p>Please select a show first.</p>";
+    return;
+  }
+
+  out.innerHTML = "<p>Loading results from Google Sheet…</p>";
+
+  try {
+    // Best practice: push any pending birds first
+    if (navigator.onLine) {
+      try { syncPending(); } catch(e) {}
+    }
+
+    const data = await fetchLeaderboard(showName);
+
+    if (!data || data.ok !== true) {
+      out.innerHTML = "<p>Could not load leaderboard (server rejected). Showing local device results instead.</p>" + renderLocalResultsHTML();
+      return;
+    }
+
+    const results = data.results || {};
+
+    if (mode === "breed") {
+      out.innerHTML = renderBestInBreed(results.bestInBreed || results.breed || null);
+      return;
+    }
+
+    if (mode === "variety") {
+      out.innerHTML = renderVariety(results.bestVariety || results.variety || []);
+      return;
+    }
+
+    // default: classColour
+    out.innerHTML = renderClassColour(results.bestClassColour || results.classColour || []);
+  } catch (e) {
+    out.innerHTML = "<p>Could not load leaderboard (no internet / blocked). Showing local device results instead.</p>" + renderLocalResultsHTML();
+  }
+}
+
+// ===================== EXPORT (LOCAL DEVICE EXPORT) =====================
 function exportCSV() {
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
@@ -696,3 +840,4 @@ function exportCSV() {
 
   URL.revokeObjectURL(url);
 }
+
