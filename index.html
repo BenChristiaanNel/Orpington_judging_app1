@@ -281,40 +281,37 @@
 
     <div class="card">
       <!-- ✅ Results mode buttons -->
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-        <button type="button" onclick="loadResultsMode('classColour')"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#3b82f6; color:white; font-weight:900; cursor:pointer;">
-          Best in Class + Colour (Top 5)
-        </button>
+     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+  <button type="button" onclick="loadResultsMode('classColour')"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+    Best in Class + Colour (Top 5)
+  </button>
 
-        <button type="button" onclick="loadResultsMode('variety')"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#64748b; color:white; font-weight:900; cursor:pointer;">
-          Best in Variety (Top 3)
-        </button>
+  <button type="button" onclick="loadResultsMode('variety')"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+    Best in Variety (Top 3)
+  </button>
 
-        <button type="button" onclick="loadResultsMode('breed')"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#16a34a; color:white; font-weight:900; cursor:pointer;">
-          Best in Breed + Reserve
-        </button>
-      </div>
+  <button type="button" onclick="loadResultsMode('breed')"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+    Best in Breed
+  </button>
 
-      <!-- existing nav buttons -->
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-        <button type="button" onclick="backToJudgingFromResults()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
-          ← Back to Judging
-        </button>
+  <button type="button" onclick="backToJudgingFromResults()"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+    ← Back to Judging
+  </button>
 
-        <button type="button" onclick="exportCSV()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
-          Export Results
-        </button>
+  <button type="button" onclick="exportCSV()"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#ffffff; font-weight:900; cursor:pointer;">
+    Export Results
+  </button>
 
-        <button type="button" onclick="newShowHome()"
-          style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
-          New Show (Home)
-        </button>
-      </div>
+  <button type="button" onclick="newShowHome()"
+    style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
+    New Show (Home)
+  </button>
+</div>
 
       <!-- ✅ this is where we will render leaderboard HTML -->
       <div id="resultsPageContent"></div>
@@ -322,6 +319,6 @@
   </div>
 
   <!-- ✅ cache-bust -->
-  <script src="app.js?v=1001"></script>
+  <script src="app.js?v=1006"></script>
 </body>
 </html>
