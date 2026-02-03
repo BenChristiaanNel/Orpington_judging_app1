@@ -583,7 +583,8 @@ async function loadResultsMode(mode) {
   document.getElementById("resultsClassName").textContent = className || "-";
 
   const resultsDiv = document.getElementById("resultsPageContent");
-  resultsDiv.innerHTML = `<p style="font-weight:900;">Loading online results…</p>`;
+ resultsDiv.innerHTML = `<p style="font-weight:900;">Loading ONLINE results…</p>
+<p style="opacity:0.8;">If this hangs, the admin URL or deployment permissions are wrong.</p>`;
 
   try {
     const data = await fetchLeaderboard(showName);
@@ -594,14 +595,18 @@ async function loadResultsMode(mode) {
     else renderBestInBreed(data, resultsDiv);
 
     return;
-  } catch (e) {
-    resultsDiv.innerHTML = `
-      <p style="color:#b91c1c;font-weight:900;">
-        Could not reach admin sheet (showing LOCAL device results instead).
-      </p>
-    `;
-    renderLocalFallback(resultsDiv);
-  }
+} catch (e) {
+  resultsDiv.innerHTML = `
+    <p style="color:#b91c1c;font-weight:900;">
+      ONLINE RESULTS FAILED → showing LOCAL device results instead.
+    </p>
+    <p style="opacity:0.85;">
+      Reason: ${String(e && e.message ? e.message : e)}
+    </p>
+  `;
+  renderLocalFallback(resultsDiv);
+}
+
 }
 
 function showResults() {
@@ -720,3 +725,17 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
+function viewBestClassColour() {
+  showOnly("resultsScreen");
+  loadResultsMode("classColour");
+}
+
+function viewBestVariety() {
+  showOnly("resultsScreen");
+  loadResultsMode("variety");
+}
+
+function viewBestInBreed() {
+  showOnly("resultsScreen");
+  loadResultsMode("breed");
+}
