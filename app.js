@@ -1,4 +1,4 @@
-const SERVER_URL = "PASTE_YOUR_NEW_EXEC_URL_HERE";
+const SERVER_URL = "https://script.google.com/macros/s/AKfycbxN44zh57LIM2SebCG6yffJF02sWWOhavfllBQzHc1y8ScyeGc6YjIJqxSZAdVIg7DT/exec";
 const PASSCODE = "AVIOMED2026";
 
 let state = {};
