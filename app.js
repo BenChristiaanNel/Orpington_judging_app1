@@ -1,5 +1,5 @@
 /************** CONFIG **************/
-const SERVER_URL = "PASTE_YOUR_WEB_APP_EXEC_URL_HERE"; // your Apps Script /exec
+const SERVER_URL = "https://script.google.com/macros/s/AKfycbxN44zh57LIM2SebCG6yffJF02sWWOhavfllBQzHc1y8ScyeGc6YjIJqxSZAdVIg7DT/exec"; // your Apps Script /exec
 const ADMIN_PASSCODE = "AVIOMED2026"; // case-insensitive server-side
 
 // Orpington colours list (edit anytime)
