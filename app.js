@@ -590,15 +590,41 @@ function esc(s) {
 }
 
 // Fetch leaderboard JSON from Apps Script (ALL judges / ALL phones)
-async function fetchLeaderboard(showName) {
+function jsonpLoad(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Math.random().toString(36).slice(2);
+    const s = document.createElement("script");
+
+    window[cb] = (data) => {
+      cleanup();
+      resolve(data);
+    };
+
+    function cleanup() {
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      if (s && s.parentNode) s.parentNode.removeChild(s);
+    }
+
+    s.onerror = () => {
+      cleanup();
+      reject(new Error("JSONP failed"));
+    };
+
+    // Add callback to URL
+    s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+    document.body.appendChild(s);
+  });
+}
+
+async function fetchLeaderboardSafe(showName) {
   const url =
     `${ADMIN_URL}?mode=leaderboard` +
     `&show=${encodeURIComponent(showName)}` +
     `&passcode=${encodeURIComponent(ADMIN_PASSCODE)}`;
 
-  const r = await fetch(url, { method: "GET" });
-  return await r.json();
+  return await jsonpLoad(url);
 }
+
 
 // Render functions for leaderboard data (flexible to structure)
 function renderBestInBreed(best) {
