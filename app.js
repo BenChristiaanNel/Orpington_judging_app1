@@ -937,32 +937,119 @@ async function fetchLeaderboardSafe(showName) {
 
 function renderLeaderboardToHTML(data, mode) {
   const results = (data && data.results) ? data.results : {};
+  const bestClassColour = results.bestClassColour || [];
+  const bestVariety = results.bestVariety || [];
+  const bestInBreed = results.bestInBreed || null;
 
-  // Try multiple keys because Code.gs versions differ
-  const bestClassColour = results.bestClassColour || results.classColour || [];
-  const bestVariety = results.bestVariety || results.variety || [];
-  const bestInBreed = results.bestInBreed || results.breed || results.best || null;
+  const currentClass = (localStorage.getItem("currentClass") || "").trim();
 
-  // Simple rendering (safe)
+  // ===== BEST IN BREED (overall) =====
   if (mode === "breed") {
-    if (!bestInBreed) return "<p>No Best in Breed yet.</p>";
+    if (!bestInBreed || (!bestInBreed.winner && !bestInBreed.reserve)) {
+      return "<p>No Best in Breed yet.</p>";
+    }
 
-    const w = bestInBreed.winner || bestInBreed.bestInBreed || bestInBreed.w || null;
-    const r = bestInBreed.reserve || bestInBreed.reserveBestInBreed || bestInBreed.r || null;
+    const w = bestInBreed.winner;
+    const r = bestInBreed.reserve;
 
-    let html = `<h2>Best in Breed</h2>`;
+    let html = `<h2>Best in Breed (Overall)</h2>`;
+
     if (w) {
-      html += `<div style="background:#ffd700;color:black;font-weight:900;padding:10px;border-radius:12px;margin:8px 0;">
-        🥇 Best in Breed: Bird ${w.bird_id || w.birdId} — <strong>${w.total}</strong> (${w.class} • ${w.colour})
-      </div>`;
+      html += `
+        <div style="background:#ffd700;color:black;font-weight:900;padding:12px;border-radius:14px;margin:10px 0;">
+          🥇 Best in Breed: Bird ${w.bird_id} — <strong>${w.total}</strong>
+          <div style="font-weight:800;opacity:0.85;margin-top:4px;">${w.class} • ${w.colour}</div>
+        </div>
+      `;
     }
     if (r) {
-      html += `<div style="background:#c0c0c0;color:black;font-weight:900;padding:10px;border-radius:12px;margin:8px 0;">
-        🥈 Reserve: Bird ${r.bird_id || r.birdId} — <strong>${r.total}</strong> (${r.class} • ${r.colour})
-      </div>`;
+      html += `
+        <div style="background:#c0c0c0;color:black;font-weight:900;padding:12px;border-radius:14px;margin:10px 0;">
+          🥈 Reserve Best in Breed: Bird ${r.bird_id} — <strong>${r.total}</strong>
+          <div style="font-weight:800;opacity:0.85;margin-top:4px;">${r.class} • ${r.colour}</div>
+        </div>
+      `;
     }
+
     return html;
   }
+
+  // ===== BEST IN VARIETY (per colour across ALL classes) =====
+  if (mode === "variety") {
+    if (!bestVariety.length) return "<p>No Best in Variety yet.</p>";
+
+    let html = `<h2>Best in Variety (Top 3 per Colour)</h2>`;
+
+    bestVariety.forEach(g => {
+      html += `<h3 style="margin-top:16px;">${g.colour} <span style="opacity:0.75;">(entries: ${g.entries || 0})</span></h3>`;
+
+      const top = (g.top3 || []).slice(0, 3);
+      if (top.length === 0) {
+        html += `<p><em>No ranked birds for this colour yet.</em></p>`;
+        return;
+      }
+
+      top.forEach((b, i) => {
+        let style = "";
+        if (i === 0) style = "background:#ffd700;color:black;";
+        else if (i === 1) style = "background:#c0c0c0;color:black;";
+        else if (i === 2) style = "background:#cd7f32;color:white;";
+
+        html += `
+          <div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
+            ${i + 1}. Bird ${b.bird_id} — <strong>${b.total}</strong>
+            <span style="font-weight:800;opacity:0.85;">(${b.class})</span>
+          </div>
+        `;
+      });
+
+      html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
+    });
+
+    return html;
+  }
+
+  // ===== DEFAULT: BEST IN CLASS + COLOUR (Top 5) =====
+  if (!bestClassColour.length) return "<p>No Best in Class + Colour yet.</p>";
+
+  // Filter to ONLY the class you selected
+  const filtered = currentClass
+    ? bestClassColour.filter(g => String(g.class || "").toUpperCase() === currentClass.toUpperCase())
+    : bestClassColour;
+
+  let html = `<h2>Best in Class + Colour (Top 5)</h2>`;
+  if (currentClass) {
+    html += `<p style="opacity:0.8;"><em>Showing class: ${currentClass}</em></p>`;
+  }
+
+  filtered.forEach(g => {
+    html += `<h3 style="margin-top:16px;">${g.class} — ${g.colour} <span style="opacity:0.75;">(entries: ${g.entries || 0})</span></h3>`;
+
+    const top = (g.top5 || []).slice(0, 5);
+    if (top.length === 0) {
+      html += `<p><em>No ranked birds in this group yet.</em></p>`;
+      return;
+    }
+
+    top.forEach((b, i) => {
+      let style = "";
+      if (i === 0) style = "background:#ffd700;color:black;";
+      else if (i === 1) style = "background:#c0c0c0;color:black;";
+      else if (i === 2) style = "background:#cd7f32;color:white;";
+
+      html += `
+        <div style="${style}font-weight:900;padding:10px;border-radius:12px;margin:6px 0;">
+          ${i + 1}. Bird ${b.bird_id} — <strong>${b.total}</strong>
+        </div>
+      `;
+    });
+
+    html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
+  });
+
+  return html;
+}
+
 
   if (mode === "variety") {
     if (!bestVariety.length) return "<p>No Best in Variety yet.</p>";
