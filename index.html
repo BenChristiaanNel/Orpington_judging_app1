@@ -16,12 +16,8 @@
       border-radius:14px; background:#facc15; color:#1e3a8a;
       border:none; cursor:pointer; box-shadow:0 6px 15px rgba(0,0,0,0.35);
     }
-    .btn-white{
-      padding:22px 36px; font-size:22px; font-weight:700;
-      border-radius:14px; background:#ffffff; color:#1e3a8a;
-      border:none; cursor:pointer; box-shadow:0 6px 15px rgba(0,0,0,0.25);
-    }
 
+    /* centered blue screens */
     .screen-blue{
       text-align:center;
       min-height:100vh;
@@ -35,7 +31,6 @@
       flex-direction:column;
 
       overflow:hidden;
-      box-sizing:border-box;
     }
 
     .grid-wrap{
@@ -52,12 +47,9 @@
       padding:16px 14px; font-size:18px;
       border-radius:12px; border:none; outline:none;
       margin-bottom:22px;
-      box-sizing:border-box;
     }
 
-    .subline{ margin-top:-6px; font-size:16px; }
-    .muted{ opacity:0.9; }
-
+    /* Judging template rows */
     .score-row{ margin: 14px 0; }
     .score-row label{ display:block; font-weight:800; margin-bottom:6px; }
     .score-help{ font-size:13px; opacity:0.8; margin-top:-6px; margin-bottom:6px; }
@@ -69,8 +61,8 @@
       background:#e5e7eb; color:#111827;
     }
 
-    textarea{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; box-sizing:border-box; }
-    select{ padding:12px; border-radius:12px; border:1px solid #d1d5db; width:100%; box-sizing:border-box; }
+    textarea{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; }
+    select{ padding:12px; border-radius:12px; border:1px solid #d1d5db; width:100%; }
 
     .dq-box{
       margin-top:14px;
@@ -88,14 +80,14 @@
 
     .card{ background:white; border-radius:16px; padding:16px; box-shadow:0 8px 20px rgba(0,0,0,0.08); }
     label{ font-weight:800; display:block; margin-top:10px; margin-bottom:6px; }
-    input[type="text"]{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; box-sizing:border-box; }
+    input[type="text"]{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; }
     button{ margin-top:10px; margin-right:8px; }
   </style>
 </head>
 
 <body>
 
-  <!-- ✅ INTRO SCREEN -->
+  <!-- INTRO -->
   <div id="introScreen" class="screen-blue" style="display:flex;">
     <h1 style="font-size:42px; font-weight:800; margin-bottom:18px;">Orpington Show Judging</h1>
 
@@ -105,7 +97,7 @@
     <button class="btn-yellow" onclick="startApp()">Start Judging</button>
   </div>
 
-  <!-- ✅ SHOW SCREEN -->
+  <!-- SHOW -->
   <div id="showScreen" class="screen-blue" style="display:none;">
     <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Select Show</h1>
 
@@ -119,7 +111,7 @@
     <button class="btn-yellow" onclick="saveShowAndContinue()">Next</button>
   </div>
 
-  <!-- ✅ JUDGE SCREEN -->
+  <!-- JUDGE -->
   <div id="judgeScreen" class="screen-blue" style="display:none;">
     <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Judge Name</h1>
 
@@ -128,7 +120,7 @@
     <button class="btn-yellow" onclick="saveJudgeAndContinue()">Next</button>
   </div>
 
-  <!-- ✅ CLASS SCREEN (auto-next on tap) -->
+  <!-- CLASS (auto-next) -->
   <div id="classScreen" class="screen-blue" style="display:none;">
     <h1 style="font-size:34px; font-weight:800; margin-bottom:18px;">Select Class</h1>
 
@@ -144,7 +136,7 @@
     </p>
   </div>
 
-  <!-- ✅ COLOUR SCREEN (scroll box + backup Next button) -->
+  <!-- COLOUR (scroll + next fallback) -->
   <div id="colourScreen"
        style="
          display:none;
@@ -167,7 +159,8 @@
       Selected: <strong><span id="colourSelectedDisplay">None</span></strong>
     </p>
 
-    <div id="colourScrollBox"
+    <div
+      id="colourScrollBox"
       style="
         width:min(760px, 95%);
         flex:1;
@@ -178,7 +171,8 @@
         border-radius:14px;
         background: rgba(255,255,255,0.08);
         box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
-      ">
+      "
+    >
       <div class="grid-wrap" style="width:100%;">
         <button class="pill" onclick="selectColour('BLACK')">Black</button>
         <button class="pill" onclick="selectColour('BLUE')">Blue</button>
@@ -188,12 +182,10 @@
         <button class="pill" onclick="selectColour('CHOCOLATE')">Chocolate</button>
         <button class="pill" onclick="selectColour('LAVENDER')">Lavender</button>
         <button class="pill" onclick="selectColour('JUBILEE')">Jubilee</button>
-
         <button class="pill" onclick="selectColour('CUCKOO')">Cuckoo</button>
         <button class="pill" onclick="selectColour('PARTRIDGE')">Partridge</button>
         <button class="pill" onclick="selectColour('SILVER_LACED')">Silver Laced</button>
         <button class="pill" onclick="selectColour('GOLD_LACED')">Gold Laced</button>
-
         <button class="pill" onclick="selectColour('RED')">Red</button>
         <button class="pill" onclick="selectColour('ISABEL')">Isabel</button>
         <button class="pill" onclick="selectColour('CRELE')">Crele</button>
@@ -207,14 +199,14 @@
     </div>
   </div>
 
-  <!-- ✅ JUDGING SCREEN -->
-  <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff; box-sizing:border-box;">
+  <!-- JUDGING (ONLY Save + View Results) -->
+  <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff;">
     <h1>🐔 Orpington Judging</h1>
 
-    <p class="subline">Show: <strong><span id="showNameDisplay">Not selected</span></strong></p>
-    <p class="subline">Judge: <strong><span id="judgeNameDisplay">Not selected</span></strong></p>
-    <p class="subline">Class: <strong><span id="classNameDisplay">Not selected</span></strong></p>
-    <p class="subline">Colour: <strong><span id="colourNameDisplay">Not selected</span></strong></p>
+    <p style="margin-top:-8px;">Show: <strong><span id="showNameDisplay">-</span></strong></p>
+    <p style="margin-top:-8px;">Judge: <strong><span id="judgeNameDisplay">-</span></strong></p>
+    <p style="margin-top:-8px;">Class: <strong><span id="classNameDisplay">-</span></strong></p>
+    <p style="margin-top:-8px;">Colour: <strong><span id="colourNameDisplay">-</span></strong></p>
 
     <div class="card">
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
@@ -234,7 +226,7 @@
 
       <div style="margin-top:14px;">
         <h2 style="margin-bottom:6px;">SA Scale of Points</h2>
-        <div id="templateName" class="muted" style="margin-bottom:10px;"></div>
+        <div id="templateName" style="opacity:0.9; margin-bottom:10px;"></div>
         <div id="scoringContainer"></div>
       </div>
 
@@ -264,70 +256,57 @@
 
       <h2 style="margin-top:16px;">Total: <span id="total">0</span></h2>
 
-      <button onclick="saveBird()"
-        style="padding:14px 18px; border-radius:12px; border:none; background:#16a34a; color:white; font-weight:900; cursor:pointer;">
-        Save Bird
-      </button>
-
-      <button onclick="showResults()"
-        style="padding:14px 18px; border-radius:12px; border:none; background:#1e3a8a; color:white; font-weight:900; cursor:pointer;">
-        View Results
-      </button>
+      <button onclick="saveBird()">Save Bird</button>
+      <button onclick="showResults()">View Results</button>
     </div>
   </div>
 
-  <!-- ✅ RESULTS SCREEN -->
-  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-  <button type="button" onclick="backToJudgingFromResults()"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
-    ← Back to Judging
-  </button>
+  <!-- RESULTS (all buttons live here) -->
+  <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+    <h1>🏆 Results</h1>
 
-  <button type="button" onclick="viewBestClassColour()"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-    Best in Class + Colour (Top 5)
-  </button>
+    <p style="margin-top:-8px;">Show: <strong><span id="resultsShowName">-</span></strong></p>
+    <p style="margin-top:-8px;">Class: <strong><span id="resultsClassName">-</span></strong></p>
 
-  <button type="button" onclick="viewBestVariety()"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-    Best in Variety (Top 3)
-  </button>
-
-  <button type="button" onclick="viewBestInBreed()"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-    Best in Breed
-  </button>
-
-  <button type="button" onclick="exportCSV()"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
-    Export Results
-  </button>
-
-  <button type="button" onclick="newShowHome()"
-    style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
-    New Show (Home)
-  </button>
-</div>
-
-<div id="resultsPageContent"></div>
-
-
-      <div style="margin-bottom:10px;">
-        <button type="button" onclick="syncNow()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-          Sync Pending to Admin
+    <div class="card">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+        <button type="button" onclick="backToJudgingFromResults()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+          ← Back to Judging
         </button>
-        <span style="margin-left:10px; font-weight:800; opacity:0.8;">
-          (offline birds upload when online)
-        </span>
+
+        <button type="button" onclick="viewBestClassColour()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          Best in Class + Colour (Top 5)
+        </button>
+
+        <button type="button" onclick="viewBestVariety()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          Best in Variety (Top 3)
+        </button>
+
+        <button type="button" onclick="viewBestInBreed()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          Best in Breed
+        </button>
+
+        <button type="button" onclick="exportCSV()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+          Export Results
+        </button>
+
+        <button type="button" onclick="newShowHome()"
+          style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
+          New Show (Home)
+        </button>
       </div>
 
       <div id="resultsPageContent"></div>
     </div>
   </div>
 
-  <!-- ✅ cache-bust -->
-  <script src="app.js?v=9999"></script>
+  <!-- cache-bust -->
+  <script src="app.js?v=9001"></script>
 </body>
 </html>
 
