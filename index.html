@@ -98,65 +98,25 @@
       box-shadow:0 10px 20px rgba(0,0,0,0.08);
       border:1px solid #e5e7eb;
       margin-bottom:14px;
-      color:#0b1220;
+      background:#ffffff;
     }
     .winner-title{
       font-size:20px;
       font-weight:900;
       margin:0 0 10px;
-      color:#0b1220;
     }
     .winner-grid{
       display:grid;
       grid-template-columns: 1fr;
       gap:6px;
       font-size:15px;
-      color:#0b1220;
     }
     .kv b{ font-weight:900; }
 
-    /* ✅ Best in Variety cards grid */
-    .cards-grid{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap:12px;
-    }
-    @media (max-width: 900px){
-      .cards-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 520px){
-      .cards-grid{ grid-template-columns: 1fr; }
-    }
-    .variety-card{
-      background:#ffffff;
-      border:1px solid #e5e7eb;
-      border-radius:16px;
-      padding:14px;
-      box-shadow:0 10px 20px rgba(0,0,0,0.06);
-      animation: fadeUp .25s ease-out both;
-      color:#0b1220;
-    }
-    .variety-title{
-      font-weight:1000;
-      font-size:16px;
-      margin:0 0 8px;
-      color:#0b1220;
-    }
-    .medal-row{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      padding:8px 10px;
-      border-radius:12px;
-      background:#f9fafb;
-      border:1px solid #eef2f7;
-      color:#0b1220;
-      margin-bottom:8px;
+    .section-title{
+      margin: 14px 0 8px;
       font-weight:900;
-    }
-    @keyframes fadeUp{
-      from{ opacity:0; transform: translateY(8px); }
-      to{ opacity:1; transform: translateY(0); }
+      opacity:0.9;
     }
   </style>
 </head>
@@ -340,70 +300,64 @@
   </div>
 
   <!-- RESULTS SCREEN -->
-  <!-- RESULTS SCREEN -->
-<div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
-  <h1>🏆 Results</h1>
+  <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+    <h1>🏆 Results</h1>
 
-  <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
-  <p class="subline">Judge: <strong><span id="resultsJudgeName">-</span></strong></p>
-  <p class="subline">Class: <strong><span id="resultsClassName">-</span></strong></p>
+    <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
+    <p class="subline">Judge: <strong><span id="resultsJudgeName">-</span></strong></p>
+    <p class="subline">Class: <strong><span id="resultsClassName">-</span></strong></p>
 
-  <div class="card">
+    <div class="card">
 
-    <!-- ✅ 1) BEST buttons in your requested order -->
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-      <button type="button" onclick="openBestClassPage()"
-        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-        BEST IN CLASS
-      </button>
-
-      <button type="button" onclick="openBestVarietyPage()"
-        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-        BEST IN VARIETY
-      </button>
-
-      <button type="button" onclick="openBestInBreedPage()"
-        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-        BEST IN BREED
-      </button>
-    </div>
-
-    <!-- ✅ 2) EXPORT FINAL RESULTS (two options) -->
-    <div style="margin-bottom:14px;">
-      <div style="font-weight:900; margin-bottom:8px;">EXPORT FINAL RESULTS</div>
-
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button type="button" onclick="exportWinnersOnline()"
-          style="padding:12px 14px; border-radius:12px; border:none; background:#1e3a8a; color:#fff; font-weight:900; cursor:pointer;">
-          Show winners export
+      <!-- ✅ Buttons in the order you requested -->
+      <div class="section-title">Winners</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+        <button type="button" onclick="openBestClassPage()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          BEST IN CLASS
         </button>
 
-        <button type="button" onclick="exportAllOnline()"
-          style="padding:12px 14px; border-radius:12px; border:none; background:#0f766e; color:#fff; font-weight:900; cursor:pointer;">
+        <button type="button" onclick="openBestVarietyPage()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          BEST IN VARIETY
+        </button>
+
+        <button type="button" onclick="openBestInBreedPage()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          BEST IN BREED
+        </button>
+      </div>
+
+      <div class="section-title">Export final results</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <button type="button" onclick="exportWinnersCSV()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          Show Winners Export
+        </button>
+
+        <button type="button" onclick="exportAllShowCSV()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
           ALL SHOW RESULTS
         </button>
       </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+        <button type="button" onclick="backToJudgingFromResults()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+          ← Back to Judging
+        </button>
+
+        <button type="button" onclick="newShowHome()"
+          style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
+          New Show (Home)
+        </button>
+      </div>
+
+      <div id="resultsPageContent"></div>
     </div>
-
-    <!-- ✅ 3) Back + New show buttons at the bottom -->
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-      <button type="button" onclick="backToJudgingFromResults()"
-        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
-        ← Back to Judging
-      </button>
-
-      <button type="button" onclick="newShowHome()"
-        style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
-        New Show (Home)
-      </button>
-    </div>
-
-    <div id="resultsPageContent"></div>
   </div>
-</div>
 
-
-  <!-- ✅ BEST IN CLASS PAGE -->
+  <!-- BEST IN CLASS PAGE -->
   <div id="bestClassPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Best in Class (Top 5)</h1>
 
@@ -419,7 +373,7 @@
     </div>
   </div>
 
-  <!-- ✅ BEST IN VARIETY PAGE -->
+  <!-- BEST IN VARIETY PAGE -->
   <div id="bestVarietyPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Best in Variety (Top 3)</h1>
 
@@ -435,7 +389,7 @@
     </div>
   </div>
 
-  <!-- ✅ BEST IN BREED PAGE -->
+  <!-- BEST IN BREED PAGE -->
   <div id="bestBreedPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Best in Breed</h1>
 
@@ -450,7 +404,7 @@
   </div>
 
   <!-- cache-bust -->
-  <script src="app.js?v=12006"></script>
+  <script src="app.js?v=12008"></script>
 </body>
 </html>
 
