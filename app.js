@@ -1,5 +1,5 @@
 // ===================== ADMIN SYNC SETTINGS =====================
-const ADMIN_URL = "https://script.google.com/macros/s/AKfycbxSvaBUw92c2AwTqHQZihUQLphWRggEZM5Jkm6f58OjVkAsqeizA6nUNKlX1dZZoptx/exec";
+const ADMIN_URL = "https://script.google.com/macros/s/AKfycbx0dJuqLSUnzokD9XrbxC6LoCcpUct9mU4fA73ovLyz4P4qfwb4kVL2gh-GR3oyD0JY/exec";
 const ADMIN_PASSCODE = "AVIOMED2026".trim(); // MUST match EXPECTED_PASSCODE in Code.gs
 
 // ===================== SCREEN CONTROL =====================
@@ -18,15 +18,8 @@ function showOnly(screenId) {
     const el = document.getElementById(id);
     if (!el) return;
 
-    const isScrollPage = (
-      id === "judgingScreen" ||
-      id === "resultsScreen" ||
-      id === "bestClassPage" ||
-      id === "bestVarietyPage" ||
-      id === "bestBreedPage"
-    );
-
-    el.style.display = (id === screenId) ? (isScrollPage ? "block" : "flex") : "none";
+    const isMainScroll = (id === "judgingScreen" || id === "resultsScreen" || id === "bestClassPage" || id === "bestVarietyPage" || id === "bestBreedPage");
+    el.style.display = (id === screenId) ? (isMainScroll ? "block" : "flex") : "none";
   });
 
   lockScroll(!(screenId === "judgingScreen" || screenId === "resultsScreen" || screenId === "bestClassPage" || screenId === "bestVarietyPage" || screenId === "bestBreedPage"));
@@ -62,7 +55,8 @@ function queueForSync(entry) {
 }
 
 /**
- * Upload birds using sendBeacon (reliable for Apps Script web apps)
+ * Upload (no CORS problems):
+ * Uses navigator.sendBeacon to POST data to Apps Script web app.
  */
 function sendEntriesToAdmin(entries) {
   if (!ADMIN_URL) throw new Error("ADMIN_URL not set");
@@ -96,35 +90,6 @@ function syncNow() {
   } catch (e) {
     alert("Sync failed. Try again when signal is stronger.");
   }
-}
-
-// ===================== EXPORT (NO FETCH) =====================
-// These OPEN the Apps Script CSV directly (works even when fetch is blocked).
-function buildExportUrl(mode) {
-  const showName = localStorage.getItem("currentShow") || "";
-  if (!showName) {
-    alert("No show selected");
-    return "";
-  }
-
-  const qs = new URLSearchParams({
-    mode,
-    show: showName,
-    passcode: ADMIN_PASSCODE,
-    t: String(Date.now())
-  });
-
-  return `${ADMIN_URL}?${qs.toString()}`;
-}
-
-function exportWinnersOnline() {
-  const url = buildExportUrl("export_winners");
-  if (url) window.open(url, "_blank");
-}
-
-function exportAllOnline() {
-  const url = buildExportUrl("export_all");
-  if (url) window.open(url, "_blank");
 }
 
 // ===================== COLOUR LABELS =====================
@@ -270,7 +235,8 @@ function saveShowAndContinue() {
   if (!showName) return alert("Please choose a show.");
 
   localStorage.setItem("currentShow", showName);
-  document.getElementById("showNameDisplay").textContent = showName;
+  const lbl = document.getElementById("showNameDisplay");
+  if (lbl) lbl.textContent = showName;
 
   showOnly("judgeScreen");
 
@@ -285,18 +251,21 @@ function saveJudgeAndContinue() {
   if (!judgeName) return alert("Please enter the judge name.");
 
   localStorage.setItem("currentJudge", judgeName);
-  document.getElementById("judgeNameDisplay").textContent = judgeName;
+  const lbl = document.getElementById("judgeNameDisplay");
+  if (lbl) lbl.textContent = judgeName;
 
   showOnly("classScreen");
 
   const savedClass = localStorage.getItem("currentClass") || "";
-  document.getElementById("classSelectedDisplay").textContent = savedClass || "None";
+  const cd = document.getElementById("classSelectedDisplay");
+  if (cd) cd.textContent = savedClass || "None";
 }
 
 // Tap class = auto-next
 function selectClass(className) {
   localStorage.setItem("currentClass", className);
-  document.getElementById("classSelectedDisplay").textContent = className;
+  const cd = document.getElementById("classSelectedDisplay");
+  if (cd) cd.textContent = className;
 
   setTimeout(() => {
     const cs = document.getElementById("classScreen");
@@ -308,18 +277,21 @@ function saveClassAndContinue() {
   const className = localStorage.getItem("currentClass") || "";
   if (!className) return alert("Please select a class first.");
 
-  document.getElementById("classNameDisplay").textContent = className;
+  const lbl = document.getElementById("classNameDisplay");
+  if (lbl) lbl.textContent = className;
 
   showOnly("colourScreen");
 
   const savedColour = localStorage.getItem("currentColour") || "";
-  document.getElementById("colourSelectedDisplay").textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
+  const cd = document.getElementById("colourSelectedDisplay");
+  if (cd) cd.textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
 }
 
 // Tap colour = auto-next
 function selectColour(colourKey) {
   localStorage.setItem("currentColour", colourKey);
-  document.getElementById("colourSelectedDisplay").textContent = COLOUR_LABELS[colourKey] || colourKey;
+  const cd = document.getElementById("colourSelectedDisplay");
+  if (cd) cd.textContent = COLOUR_LABELS[colourKey] || colourKey;
 
   setTimeout(() => {
     const cs = document.getElementById("colourScreen");
@@ -331,7 +303,8 @@ function saveColourAndContinue() {
   const colourKey = localStorage.getItem("currentColour") || "";
   if (!colourKey) return alert("Please select a colour first.");
 
-  document.getElementById("colourNameDisplay").textContent = COLOUR_LABELS[colourKey] || colourKey;
+  const lbl = document.getElementById("colourNameDisplay");
+  if (lbl) lbl.textContent = COLOUR_LABELS[colourKey] || colourKey;
 
   renderTemplateForColour(colourKey);
   resetDQUI();
@@ -341,20 +314,23 @@ function saveColourAndContinue() {
   lockScroll(false);
   calculateTotal();
 
-  document.getElementById("birdId").focus();
+  const birdIdInput = document.getElementById("birdId");
+  if (birdIdInput) birdIdInput.focus();
 }
 
 // Back buttons
 function backToClass() {
   showOnly("classScreen");
   const savedClass = localStorage.getItem("currentClass") || "";
-  document.getElementById("classSelectedDisplay").textContent = savedClass || "None";
+  const cd = document.getElementById("classSelectedDisplay");
+  if (cd) cd.textContent = savedClass || "None";
 }
 
 function backToColour() {
   showOnly("colourScreen");
   const savedColour = localStorage.getItem("currentColour") || "";
-  document.getElementById("colourSelectedDisplay").textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
+  const cd = document.getElementById("colourSelectedDisplay");
+  if (cd) cd.textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
 }
 
 function backToJudgingFromResults() {
@@ -376,7 +352,7 @@ function newShowHome() {
   lockScroll(true);
 }
 
-// ===================== SCORING UX =====================
+// ===================== SCORING UX (stop jumping to Bird ID) =====================
 function blurBirdId() {
   const idEl = document.getElementById("birdId");
   if (idEl && document.activeElement === idEl) idEl.blur();
@@ -468,13 +444,17 @@ function prepareNextBird() {
     });
   }
 
-  document.getElementById("commentBox").value = "";
+  const c = document.getElementById("commentBox");
+  if (c) c.value = "";
+
   resetDQUI();
   calculateTotal();
 
   const birdIdInput = document.getElementById("birdId");
-  birdIdInput.value = "";
-  birdIdInput.focus();
+  if (birdIdInput) {
+    birdIdInput.value = "";
+    birdIdInput.focus();
+  }
 }
 
 // ===================== DQ UI =====================
@@ -493,7 +473,8 @@ function resetDQUI() {
 function toggleDQ() {
   const toggle = document.getElementById("dqToggle");
   const fields = document.getElementById("dqFields");
-  fields.style.display = (toggle && toggle.checked) ? "block" : "none";
+  if (!toggle || !fields) return;
+  fields.style.display = toggle.checked ? "block" : "none";
   calculateTotal();
 }
 
@@ -503,12 +484,13 @@ function quickDQ() {
     toggle.checked = true;
     toggleDQ();
   }
-  document.getElementById("dqReason").focus();
+  const reason = document.getElementById("dqReason");
+  if (reason) reason.focus();
 }
 
-// ===================== SAVE / RESULTS =====================
+// ===================== SAVE / RESULTS / EXPORT =====================
 function saveBird() {
-  const birdId = document.getElementById("birdId").value.trim();
+  const birdId = document.getElementById("birdId")?.value.trim() || "";
 
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
@@ -524,18 +506,18 @@ function saveBird() {
     return;
   }
 
-  const isDQ = document.getElementById("dqToggle").checked;
-  const dqReason = document.getElementById("dqReason").value.trim();
-  const dqNote = document.getElementById("dqNote").value.trim();
+  const isDQ = document.getElementById("dqToggle")?.checked || false;
+  const dqReason = (document.getElementById("dqReason")?.value || "").trim();
+  const dqNote = (document.getElementById("dqNote")?.value || "").trim();
 
   if (isDQ && !dqReason) {
     alert("If Disqualified is selected, please choose a DQ reason.");
     return;
   }
 
-  const comment = document.getElementById("commentBox").value.trim();
+  const comment = (document.getElementById("commentBox")?.value || "").trim();
   const scores = getScoresObject();
-  const total = isDQ ? 0 : Number(document.getElementById("total").textContent || "0");
+  const total = isDQ ? 0 : Number(document.getElementById("total")?.textContent || "0");
 
   const bird = {
     show: showName,
@@ -642,20 +624,24 @@ function showResults() {
 
     html += `<h3>${label} (Total entries: ${all.length})</h3>`;
 
-    ranked.forEach((bird, index) => {
-      let style = "";
-      if (index === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
-      else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
-      else if (index === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+    if (ranked.length === 0) {
+      html += `<p><em>No ranked birds (all disqualified).</em></p>`;
+    } else {
+      ranked.forEach((bird, index) => {
+        let style = "";
+        if (index === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+        else if (index === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+        else if (index === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
 
-      html += `<p style="${style}">${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong></p>`;
-    });
+        html += `<p style="${style}">${index + 1}. Bird ${bird.id} – <strong>${bird.total}</strong></p>`;
+      });
+    }
 
     if (dq.length > 0) {
       html += `<p style="margin-top:10px; font-weight:900;">Disqualified:</p>`;
       dq.forEach(b => {
-        const reason = escapeHtml(b.dqReason || "No reason");
-        html += `<p style="padding:6px 0; opacity:0.95;"><strong>Bird ${escapeHtml(b.id)}</strong> — <em>${reason}</em></p>`;
+        const reason = (b.dqReason || "No reason").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        html += `<p style="padding:6px 0; opacity:0.95;"><strong>Bird ${b.id}</strong> — <em>${reason}</em></p>`;
       });
     }
 
@@ -666,40 +652,103 @@ function showResults() {
   showOnly("resultsScreen");
 }
 
+function exportCSV() {
+  const showName = localStorage.getItem("currentShow") || "";
+  const judgeName = localStorage.getItem("currentJudge") || "";
+  const className = localStorage.getItem("currentClass") || "";
+
+  let birds = JSON.parse(localStorage.getItem("birds") || "[]");
+  birds = birds.filter(b => b.show === showName && b.judge === judgeName && b.class === className);
+
+  if (birds.length === 0) {
+    alert("No data to export for this show/judge/class.");
+    return;
+  }
+
+  let csv = "Show,Judge,Class,Colour,Bird ID,Disqualified,DQ Reason,DQ Note,Total,ScoresJSON,Comment,Timestamp\n";
+
+  birds.forEach(b => {
+    const colourLabel = COLOUR_LABELS[b.colour] || b.colour;
+    const scoresJson = JSON.stringify(b.scores || {}).replace(/"/g, '""');
+    const comment = (b.comment || "").replace(/"/g, '""');
+    const dqReason = (b.dqReason || "").replace(/"/g, '""');
+    const dqNote = (b.dqNote || "").replace(/"/g, '""');
+
+    csv += `"${b.show}","${b.judge}","${b.class}","${colourLabel}","${b.id}",${b.disqualified ? "YES":"NO"},"${dqReason}","${dqNote}",${b.total},"${scoresJson}","${comment}","${b.timestamp}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const safeShow = showName.replace(/[^a-z0-9]+/gi, "_");
+  const safeJudge = judgeName.replace(/[^a-z0-9]+/gi, "_");
+  const safeClass = className.replace(/[^a-z0-9]+/gi, "_");
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `orpington_results_${safeShow}_${safeJudge}_${safeClass}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
 // ============================================================
-// ✅ ONLINE BEST-OF PAGES (uses fetch if possible, otherwise opens in a tab)
+// ✅ ONLINE BEST-OF PAGES (JSONP — fixes Failed to fetch)
 // ============================================================
 
 function buildLeaderboardUrl(showName) {
   const qs = new URLSearchParams({
     mode: "leaderboard",
     show: showName,
-    passcode: ADMIN_PASSCODE,
-    t: String(Date.now())
+    passcode: ADMIN_PASSCODE
   });
   return `${ADMIN_URL}?${qs.toString()}`;
 }
 
-function openOnlineResultsTab() {
-  const showName = localStorage.getItem("currentShow") || "";
-  if (!showName) return alert("No show selected");
-  window.open(buildLeaderboardUrl(showName), "_blank");
+function fetchJsonp(url, timeoutMs = 12000) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+    const script = document.createElement("script");
+
+    const cleanup = () => {
+      try { delete window[cb]; } catch(e) {}
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+    };
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Timeout"));
+    }, timeoutMs);
+
+    window[cb] = (data) => {
+      clearTimeout(timer);
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      clearTimeout(timer);
+      cleanup();
+      reject(new Error("Failed to fetch"));
+    };
+
+    const join = url.includes("?") ? "&" : "?";
+    script.src = url + join + "callback=" + encodeURIComponent(cb);
+    document.body.appendChild(script);
+  });
 }
 
 async function fetchOnlineLeaderboardOrThrow() {
-  if (!navigator.onLine) throw new Error("No internet");
   const showName = localStorage.getItem("currentShow") || "";
   if (!showName) throw new Error("No show selected");
+  if (!navigator.onLine) throw new Error("No internet");
 
   const url = buildLeaderboardUrl(showName);
+  const data = await fetchJsonp(url);
 
-  // Some phones block fetch to Apps Script. If blocked, catch will show a fallback button.
-  const res = await fetch(url, { method: "GET", cache: "no-store" });
-  if (!res.ok) throw new Error("HTTP " + res.status);
-
-  const data = await res.json();
-  if (!data || data.ok !== true) throw new Error(data?.error || "Unknown error");
-
+  if (!data || data.ok !== true) {
+    throw new Error(data?.error || "Unknown error");
+  }
   return data;
 }
 
@@ -707,86 +756,43 @@ function backToResultsFromBestPages() {
   showOnly("resultsScreen");
 }
 
+// Best in Class (Top 5 per class+colour)
 async function openBestClassPage() {
   const container = document.getElementById("bestClassContent");
-  container.innerHTML = "<p><em>Loading online results…</em></p>";
+  if (container) container.innerHTML = "<p><em>Loading online results…</em></p>";
   showOnly("bestClassPage");
 
   try {
     const data = await fetchOnlineLeaderboardOrThrow();
     const list = data.results?.bestClassColour || [];
-
-    if (!list.length) {
+    if (list.length === 0) {
       container.innerHTML = "<p><strong>No ranked entries yet.</strong></p>";
       return;
     }
 
     let html = "";
     list.forEach(block => {
-      html += `<h3 style="margin-top:14px;">${escapeHtml(block.class)} — ${escapeHtml(block.colour)}
-        <span style="opacity:0.7;">(Entries: ${block.entries ?? 0})</span></h3>`;
+      const cls = block.class || "-";
+      const col = block.colour || "-";
+      const entries = block.entries ?? 0;
 
-      (block.top5 || []).forEach((b, idx) => {
-        let style = "";
-        if (idx === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
-        else if (idx === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
-        else if (idx === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+      html += `<h3 style="margin-top:14px;">${escapeHtml(cls)} — ${escapeHtml(col)} <span style="opacity:0.7;">(Entries: ${entries})</span></h3>`;
 
-        html += `<p style="${style}">
-          ${idx + 1}. Bird ${escapeHtml(b.bird_id)} – <strong>${b.total}</strong>
-          <span style="opacity:0.75;">(Judge: ${escapeHtml(b.judge)})</span>
-        </p>`;
-      });
-
-      html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
-    });
-
-    container.innerHTML = html;
-  } catch (e) {
-    container.innerHTML = `
-      <p style="color:#b91c1c;"><strong>ONLINE RESULTS FAILED</strong></p>
-      <p>Reason: ${escapeHtml(e?.message || "unknown")}</p>
-      <button type="button" onclick="openOnlineResultsTab()"
-        style="padding:14px 16px; border-radius:12px; border:none; background:#1e3a8a; color:white; font-weight:900; cursor:pointer;">
-        Open Online Results (No Fetch)
-      </button>
-    `;
-  }
-}
-
-async function openBestVarietyPage() {
-  const container = document.getElementById("bestVarietyContent");
-  container.innerHTML = "<p><em>Loading online results…</em></p>";
-  showOnly("bestVarietyPage");
-
-  try {
-    const data = await fetchOnlineLeaderboardOrThrow();
-    const list = data.results?.bestVariety || [];
-
-    if (!list.length) {
-      container.innerHTML = "<p><strong>No ranked entries yet.</strong></p>";
-      return;
-    }
-
-    let html = "";
-    list.forEach(block => {
-      html += `<h3 style="margin-top:14px;">${escapeHtml(block.colour)}
-        <span style="opacity:0.7;">(Entries: ${block.entries ?? 0})</span></h3>`;
-
-      // One card containing all 3 birds
-      const top3 = block.top3 || [];
-      if (!top3.length) {
+      const top5 = block.top5 || [];
+      if (top5.length === 0) {
         html += `<p><em>No ranked birds.</em></p>`;
       } else {
-        html += `<div class="winner-card" style="background:#ffffff;">`;
-        top3.forEach((b, idx) => {
-          const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
-          html += `<p style="margin:6px 0;">
-            ${medal} <strong>${idx + 1}.</strong> Bird ${escapeHtml(b.bird_id)} — <strong>${b.total}</strong>
-            <span style="opacity:0.75;">(Class: ${escapeHtml(b.class)} | Judge: ${escapeHtml(b.judge)})</span>
+        top5.forEach((b, idx) => {
+          let style = "";
+          if (idx === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+          else if (idx === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+          else if (idx === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:5px;display:block;";
+
+          html += `<p style="${style}">
+            ${idx + 1}. Bird ${escapeHtml(b.bird_id)} — <strong>${escapeHtml(String(b.total))}</strong>
+            <span style="opacity:0.8;">(Judge: ${escapeHtml(b.judge || "-")})</span>
           </p>`;
         });
-        html += `</div>`;
       }
 
       html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
@@ -794,24 +800,68 @@ async function openBestVarietyPage() {
 
     container.innerHTML = html;
   } catch (e) {
-    container.innerHTML = `
-      <p style="color:#b91c1c;"><strong>ONLINE RESULTS FAILED</strong></p>
-      <p>Reason: ${escapeHtml(e?.message || "unknown")}</p>
-      <button type="button" onclick="openOnlineResultsTab()"
-        style="padding:14px 16px; border-radius:12px; border:none; background:#1e3a8a; color:white; font-weight:900; cursor:pointer;">
-        Open Online Results (No Fetch)
-      </button>
-    `;
+    container.innerHTML = `<p style="color:#b91c1c;"><strong>ONLINE RESULTS FAILED</strong></p>
+      <p>Reason: ${escapeHtml((e && e.message) ? e.message : "unknown")}</p>`;
   }
 }
 
+// Best in Variety (Top 3 per colour)
+async function openBestVarietyPage() {
+  const container = document.getElementById("bestVarietyContent");
+  if (container) container.innerHTML = "<p><em>Loading online results…</em></p>";
+  showOnly("bestVarietyPage");
+
+  try {
+    const data = await fetchOnlineLeaderboardOrThrow();
+    const list = data.results?.bestVariety || [];
+    if (list.length === 0) {
+      container.innerHTML = "<p><strong>No ranked entries yet.</strong></p>";
+      return;
+    }
+
+    let html = "";
+    list.forEach(block => {
+      const col = block.colour || "-";
+      const entries = block.entries ?? 0;
+      const top3 = block.top3 || [];
+
+      // One card per variety with top3 inside
+      html += `
+        <div class="winner-card" style="background:#ffffff;">
+          <div class="winner-title">🎨 ${escapeHtml(col)} <span style="opacity:0.6; font-size:14px;">(Entries: ${entries})</span></div>
+          ${top3.length === 0 ? `<p><em>No ranked birds.</em></p>` : `
+            ${top3.map((b, idx) => {
+              let style = "";
+              if (idx === 0) style = "background:#ffd700;color:black;font-weight:bold;padding:8px;border-radius:10px;display:block;";
+              else if (idx === 1) style = "background:#c0c0c0;color:black;font-weight:bold;padding:8px;border-radius:10px;display:block;";
+              else if (idx === 2) style = "background:#cd7f32;color:white;font-weight:bold;padding:8px;border-radius:10px;display:block;";
+              return `<p style="${style}">
+                ${idx + 1}. Bird ${escapeHtml(b.bird_id)} — <strong>${escapeHtml(String(b.total))}</strong>
+                <span style="opacity:0.85;">(Class: ${escapeHtml(b.class || "-")}, Judge: ${escapeHtml(b.judge || "-")})</span>
+              </p>`;
+            }).join("")}
+          `}
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<p style="color:#b91c1c;"><strong>ONLINE RESULTS FAILED</strong></p>
+      <p>Reason: ${escapeHtml((e && e.message) ? e.message : "unknown")}</p>`;
+  }
+}
+
+// Best in Breed (two cards, judge from SHEET per bird)
 async function openBestInBreedPage() {
   const container = document.getElementById("bestBreedContent");
-  container.innerHTML = "<p><em>Loading online results…</em></p>";
+  if (container) container.innerHTML = "<p><em>Loading online results…</em></p>";
   showOnly("bestBreedPage");
 
   try {
     const data = await fetchOnlineLeaderboardOrThrow();
+
+    const showName = localStorage.getItem("currentShow") || "-";
     const bib = data.results?.bestInBreed || {};
     const winner = bib.winner || null;
     const reserve = bib.reserve || null;
@@ -822,16 +872,17 @@ async function openBestInBreedPage() {
       return;
     }
 
-    function card(title, b, bg) {
+    function cardHtml(title, b, bg) {
+      if (!b) return "";
       return `
         <div class="winner-card" style="background:${bg};">
           <div class="winner-title">${title}</div>
-          <div class="winner-grid" style="color:#111827;">
-            <div class="kv"><b>Show:</b> ${escapeHtml(b.show)}</div>
-            <div class="kv"><b>Judge:</b> ${escapeHtml(b.judge)}</div>
-            <div class="kv"><b>Class:</b> ${escapeHtml(b.class)}</div>
-            <div class="kv"><b>Colour:</b> ${escapeHtml(b.colour)}</div>
-            <div class="kv"><b>Bird ID:</b> ${escapeHtml(b.bird_id)}</div>
+          <div class="winner-grid">
+            <div class="kv"><b>Show:</b> ${escapeHtml(showName)}</div>
+            <div class="kv"><b>Judge:</b> ${escapeHtml(b.judge || "-")}</div>
+            <div class="kv"><b>Class:</b> ${escapeHtml(b.class || "-")}</div>
+            <div class="kv"><b>Colour:</b> ${escapeHtml(b.colour || "-")}</div>
+            <div class="kv"><b>Bird ID:</b> ${escapeHtml(b.bird_id || "-")}</div>
             <div class="kv"><b>Total:</b> ${escapeHtml(String(b.total ?? 0))}</div>
           </div>
         </div>
@@ -840,18 +891,12 @@ async function openBestInBreedPage() {
 
     container.innerHTML = `
       <p style="margin-top:0;"><strong>Total ranked entries:</strong> ${bib.entries ?? 0}</p>
-      ${card("🏆 Best in Breed (Winner)", winner, "#fff7cc")}
-      ${reserve ? card("🥈 Reserve Best in Breed", reserve, "#f3f4f6") : "<p><em>No reserve yet.</em></p>"}
+      ${cardHtml("🏆 Best in Breed (Winner)", winner, "#fff7cc")}
+      ${reserve ? cardHtml("🥈 Reserve Best in Breed", reserve, "#f3f4f6") : "<p><em>No reserve yet.</em></p>"}
     `;
   } catch (e) {
-    container.innerHTML = `
-      <p style="color:#b91c1c;"><strong>ONLINE RESULTS FAILED</strong></p>
-      <p>Reason: ${escapeHtml(e?.message || "unknown")}</p>
-      <button type="button" onclick="openOnlineResultsTab()"
-        style="padding:14px 16px; border-radius:12px; border:none; background:#1e3a8a; color:white; font-weight:900; cursor:pointer;">
-        Open Online Results (No Fetch)
-      </button>
-    `;
+    container.innerHTML = `<p style="color:#b91c1c;"><strong>ONLINE RESULTS FAILED</strong></p>
+      <p>Reason: ${escapeHtml((e && e.message) ? e.message : "unknown")}</p>`;
   }
 }
 
@@ -863,3 +908,4 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
