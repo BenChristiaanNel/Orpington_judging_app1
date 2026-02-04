@@ -1,5 +1,5 @@
 // ===================== ADMIN SYNC SETTINGS =====================
-const ADMIN_URL = "https://script.google.com/macros/s/AKfycbx0dJuqLSUnzokD9XrbxC6LoCcpUct9mU4fA73ovLyz4P4qfwb4kVL2gh-GR3oyD0JY/exec";
+const ADMIN_URL = "https://script.google.com/macros/s/AKfycbyosFuaJ865q9Jy4qeVwo00MTC5XMsS_reV9MRnS-6G4fgct1AByOq6XlCPZwcXYFLa/exec";
 const ADMIN_PASSCODE = "AVIOMED2026".trim(); // MUST match EXPECTED_PASSCODE in Code.gs
 
 // ===================== SCREEN CONTROL =====================
@@ -907,5 +907,51 @@ function escapeHtml(s) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+// ============================================================
+// ✅ EXPORT BUTTONS (NO FETCH — opens URL to download CSV)
+// ============================================================
+
+function buildExportUrl(showName, mode) {
+  const qs = new URLSearchParams({
+    mode,
+    show: showName,
+    passcode: ADMIN_PASSCODE
+  });
+  return `${ADMIN_URL}?${qs.toString()}`;
+}
+
+function exportWinnersOnline() {
+  if (!navigator.onLine) {
+    alert("No internet right now. Please connect to export winners.");
+    return;
+  }
+
+  const showName = (localStorage.getItem("currentShow") || "").trim();
+  if (!showName) {
+    alert("No show selected.");
+    return;
+  }
+
+  // Opens a CSV that Excel can open
+  const url = buildExportUrl(showName, "export_winners");
+  window.open(url, "_blank");
+}
+
+function exportAllOnline() {
+  if (!navigator.onLine) {
+    alert("No internet right now. Please connect to export all results.");
+    return;
+  }
+
+  const showName = (localStorage.getItem("currentShow") || "").trim();
+  if (!showName) {
+    alert("No show selected.");
+    return;
+  }
+
+  // Exports ALL rows for the show (without timestamp/device_id/entry_key)
+  const url = buildExportUrl(showName, "export_all");
+  window.open(url, "_blank");
 }
 
