@@ -9,115 +9,102 @@
   <link rel="stylesheet" href="style.css" />
 
   <style>
-    html, body { margin:0; padding:0; height:100%; overflow:hidden; font-family: Arial, sans-serif; }
+    /* =========================
+   PREMIUM RESULTS STYLING
+   ========================= */
 
-    .btn-yellow{
-      padding:22px 36px; font-size:22px; font-weight:700;
-      border-radius:14px; background:#facc15; color:#1e3a8a;
-      border:none; cursor:pointer; box-shadow:0 6px 15px rgba(0,0,0,0.35);
-    }
-    .btn-white{
-      padding:22px 36px; font-size:22px; font-weight:700;
-      border-radius:14px; background:#ffffff; color:#1e3a8a;
-      border:none; cursor:pointer; box-shadow:0 6px 15px rgba(0,0,0,0.25);
-    }
+/* Section titles */
+.section-title {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1e3a8a;
+  margin: 18px 0 10px;
+}
 
-    /* centered blue screens */
-    .screen-blue{
-      text-align:center;
-      min-height:100vh;
-      padding:24px 16px;
-      background:#1e3a8a;
-      color:white;
+/* Result buttons */
+.results-btn {
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid #d1d5db;
+  background: linear-gradient(180deg, #ffffff, #f3f4f6);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
 
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
+.results-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+}
 
-      overflow:hidden;
-    }
+/* Winner cards (shared) */
+.winner-card {
+  background: #ffffff !important;
+  color: #0f172a;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 18px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+}
 
-    .grid-wrap{
-      display:flex; flex-wrap:wrap; gap:14px; justify-content:center;
-      width:min(760px, 95%);
-    }
-    .pill{
-      padding:14px 18px; font-size:18px; font-weight:800;
-      border-radius:14px; background:#facc15; color:#1e3a8a;
-      border:none; cursor:pointer;
-    }
-    .input-wide{
-      width:min(520px, 90%);
-      padding:16px 14px; font-size:18px;
-      border-radius:12px; border:none; outline:none;
-      margin-bottom:22px;
-    }
+/* Gold / Silver emphasis */
+.winner-card.gold {
+  background: linear-gradient(135deg, #fff7cc, #fffbeb) !important;
+  border-color: #facc15;
+}
 
-    .subline{ margin-top:-6px; font-size:16px; }
-    .muted{ opacity:0.9; }
+.winner-card.silver {
+  background: linear-gradient(135deg, #f3f4f6, #ffffff) !important;
+}
 
-    /* Judging template rows */
-    .score-row{ margin: 14px 0; }
-    .score-row label{ display:block; font-weight:800; margin-bottom:6px; }
-    .score-help{ font-size:13px; opacity:0.8; margin-top:-6px; margin-bottom:6px; }
-    .score-line{ display:flex; align-items:center; gap:10px; }
-    .score-line input[type="range"]{ width:100%; }
-    .score-badge{
-      min-width:44px; text-align:center; font-weight:900;
-      padding:6px 10px; border-radius:10px;
-      background:#e5e7eb; color:#111827;
-    }
+/* Winner titles */
+.winner-title {
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 12px;
+  color: #1e3a8a;
+}
 
-    textarea{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; }
-    select{ padding:12px; border-radius:12px; border:1px solid #d1d5db; width:100%; }
+/* Key-value grid */
+.winner-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  font-size: 15px;
+}
 
-    .dq-box{
-      margin-top:14px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid #e5e7eb;
-      background:#f9fafb;
-    }
+.kv {
+  color: #111827;
+}
 
-    .danger{
-      background:#dc2626; color:white; border:none;
-      padding:12px 16px; border-radius:12px; font-weight:800;
-      cursor:pointer;
-    }
+.kv b {
+  font-weight: 900;
+  color: #020617;
+}
 
-    .card{ background:white; border-radius:16px; padding:16px; box-shadow:0 8px 20px rgba(0,0,0,0.08); }
-    label{ font-weight:800; display:block; margin-top:10px; margin-bottom:6px; }
-    input[type="text"]{ width:100%; padding:12px; border-radius:12px; border:1px solid #d1d5db; }
-    button{ margin-top:10px; margin-right:8px; }
+/* Ranking rows */
+.rank-row {
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
 
-    /* Winner cards */
-    .winner-card{
-      border-radius:16px;
-      padding:16px;
-      box-shadow:0 10px 20px rgba(0,0,0,0.08);
-      border:1px solid #e5e7eb;
-      margin-bottom:14px;
-      background:#ffffff;
-    }
-    .winner-title{
-      font-size:20px;
-      font-weight:900;
-      margin:0 0 10px;
-    }
-    .winner-grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:6px;
-      font-size:15px;
-    }
-    .kv b{ font-weight:900; }
+.rank-1 { background: #fde68a; color: #78350f; }
+.rank-2 { background: #e5e7eb; color: #111827; }
+.rank-3 { background: #fcd34d; color: #78350f; }
 
-    .section-title{
-      margin: 14px 0 8px;
-      font-weight:900;
-      opacity:0.9;
-    }
+/* Variety cards grid */
+.variety-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
   </style>
 </head>
 
