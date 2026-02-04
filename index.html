@@ -281,6 +281,54 @@
     .pill{ font-size:15px; padding:12px 14px; }
     #introScreen img{ max-width: 86% !important; }
   }
+    /* =========================================================
+   TEXT CONTRAST FIX — BEST IN VARIETY & BEST IN BREED
+   ========================================================= */
+
+/* Force readable text inside winner cards */
+.winner-card,
+.winner-card * {
+  color: #0b1220 !important;
+}
+
+/* Make titles darker and stronger */
+.winner-title {
+  color: #0b1220 !important;
+  font-weight: 1000;
+}
+
+/* Key/value text */
+.winner-grid {
+  color: #0b1220 !important;
+}
+
+/* Gold (Winner) card – slightly darker gold */
+.winner-card[style*="fff7cc"] {
+  background: linear-gradient(180deg, #fde68a, #facc15) !important;
+  border-color: rgba(0,0,0,0.15) !important;
+}
+
+/* Silver (Reserve) card – clearer contrast */
+.winner-card[style*="f3f4f6"] {
+  background: linear-gradient(180deg, #e5e7eb, #d1d5db) !important;
+  border-color: rgba(0,0,0,0.15) !important;
+}
+
+/* Best in Variety blocks (top 3 list text) */
+#bestVarietyPage p,
+#bestClassPage p {
+  color: #0b1220 !important;
+}
+
+/* Headings on best pages */
+#bestClassPage h1,
+#bestVarietyPage h1,
+#bestBreedPage h1,
+#bestClassPage h3,
+#bestVarietyPage h3 {
+  color: #0b1220 !important;
+}
+
 </style>
 
 </head>
@@ -568,7 +616,7 @@
   </div>
 
   <!-- cache-bust -->
-  <script src="app.js?v=12004"></script>
+  <script src="app.js?v=12005"></script>
 </body>
 </html>
 
