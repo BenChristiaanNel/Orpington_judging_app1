@@ -98,6 +98,7 @@
       box-shadow:0 10px 20px rgba(0,0,0,0.08);
       border:1px solid #e5e7eb;
       margin-bottom:14px;
+      background:#ffffff;
     }
     .winner-title{
       font-size:20px;
@@ -111,6 +112,12 @@
       font-size:15px;
     }
     .kv b{ font-weight:900; }
+
+    .section-title{
+      margin: 14px 0 8px;
+      font-weight:900;
+      opacity:0.9;
+    }
   </style>
 </head>
 
@@ -301,15 +308,43 @@
     <p class="subline">Class: <strong><span id="resultsClassName">-</span></strong></p>
 
     <div class="card">
+
+      <!-- ✅ Buttons in the order you requested -->
+      <div class="section-title">Winners</div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+        <button type="button" onclick="openBestClassPage()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          BEST IN CLASS
+        </button>
+
+        <button type="button" onclick="openBestVarietyPage()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          BEST IN VARIETY
+        </button>
+
+        <button type="button" onclick="openBestInBreedPage()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          BEST IN BREED
+        </button>
+      </div>
+
+      <div class="section-title">Export final results</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <button type="button" onclick="exportWinnersCSV()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          Show Winners Export
+        </button>
+
+        <button type="button" onclick="exportAllShowCSV()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          ALL SHOW RESULTS
+        </button>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
         <button type="button" onclick="backToJudgingFromResults()"
           style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
           ← Back to Judging
-        </button>
-
-        <button type="button" onclick="exportCSV()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
-          Export Results
         </button>
 
         <button type="button" onclick="newShowHome()"
@@ -318,29 +353,11 @@
         </button>
       </div>
 
-      <!-- ✅ three buttons you already have (these will now open NEW pages) -->
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-        <button type="button" onclick="openBestClassPage()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-          Best in Class (Top 5)
-        </button>
-
-        <button type="button" onclick="openBestVarietyPage()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-          Best in Variety (Top 3)
-        </button>
-
-        <button type="button" onclick="openBestInBreedPage()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-          Best in Breed
-        </button>
-      </div>
-
       <div id="resultsPageContent"></div>
     </div>
   </div>
 
-  <!-- ✅ NEW PAGE: BEST IN CLASS -->
+  <!-- BEST IN CLASS PAGE -->
   <div id="bestClassPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Best in Class (Top 5)</h1>
 
@@ -356,7 +373,7 @@
     </div>
   </div>
 
-  <!-- ✅ NEW PAGE: BEST IN VARIETY -->
+  <!-- BEST IN VARIETY PAGE -->
   <div id="bestVarietyPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Best in Variety (Top 3)</h1>
 
@@ -372,7 +389,7 @@
     </div>
   </div>
 
-  <!-- ✅ NEW PAGE: BEST IN BREED -->
+  <!-- BEST IN BREED PAGE -->
   <div id="bestBreedPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Best in Breed</h1>
 
@@ -387,7 +404,7 @@
   </div>
 
   <!-- cache-bust -->
-  <script src="app.js?v=11001"></script>
+  <script src="app.js?v=12002"></script>
 </body>
 </html>
 
