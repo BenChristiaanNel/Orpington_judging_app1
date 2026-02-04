@@ -340,62 +340,68 @@
   </div>
 
   <!-- RESULTS SCREEN -->
-  <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
-    <h1>🏆 Results</h1>
+  <!-- RESULTS SCREEN -->
+<div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+  <h1>🏆 Results</h1>
 
-    <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
-    <p class="subline">Judge: <strong><span id="resultsJudgeName">-</span></strong></p>
-    <p class="subline">Class: <strong><span id="resultsClassName">-</span></strong></p>
+  <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
+  <p class="subline">Judge: <strong><span id="resultsJudgeName">-</span></strong></p>
+  <p class="subline">Class: <strong><span id="resultsClassName">-</span></strong></p>
 
-    <div class="card">
+  <div class="card">
 
-      <!-- ✅ Buttons order requested -->
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-        <button type="button" onclick="openBestClassPage()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-          BEST IN CLASS
-        </button>
+    <!-- ✅ 1) BEST buttons in your requested order -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+      <button type="button" onclick="openBestClassPage()"
+        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+        BEST IN CLASS
+      </button>
 
-        <button type="button" onclick="openBestVarietyPage()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-          BEST IN VARIETY
-        </button>
+      <button type="button" onclick="openBestVarietyPage()"
+        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+        BEST IN VARIETY
+      </button>
 
-        <button type="button" onclick="openBestInBreedPage()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-          BEST IN BREED
-        </button>
-      </div>
+      <button type="button" onclick="openBestInBreedPage()"
+        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+        BEST IN BREED
+      </button>
+    </div>
 
-      <div style="margin:10px 0 6px; font-weight:1000;">EXPORT FINAL RESULTS</div>
+    <!-- ✅ 2) EXPORT FINAL RESULTS (two options) -->
+    <div style="margin-bottom:14px;">
+      <div style="font-weight:900; margin-bottom:8px;">EXPORT FINAL RESULTS</div>
 
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button type="button" onclick="exportWinnersOnline()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-          Show Winners Export
+          style="padding:12px 14px; border-radius:12px; border:none; background:#1e3a8a; color:#fff; font-weight:900; cursor:pointer;">
+          Show winners export
         </button>
 
-        <button type="button" onclick="exportAllShowResultsOnline()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+        <button type="button" onclick="exportAllOnline()"
+          style="padding:12px 14px; border-radius:12px; border:none; background:#0f766e; color:#fff; font-weight:900; cursor:pointer;">
           ALL SHOW RESULTS
         </button>
       </div>
-
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-        <button type="button" onclick="backToJudgingFromResults()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-          ← Back to Judging
-        </button>
-
-        <button type="button" onclick="newShowHome()"
-          style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:1000; cursor:pointer;">
-          New Show (Home)
-        </button>
-      </div>
-
-      <div id="resultsPageContent"></div>
     </div>
+
+    <!-- ✅ 3) Back + New show buttons at the bottom -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+      <button type="button" onclick="backToJudgingFromResults()"
+        style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+        ← Back to Judging
+      </button>
+
+      <button type="button" onclick="newShowHome()"
+        style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
+        New Show (Home)
+      </button>
+    </div>
+
+    <div id="resultsPageContent"></div>
   </div>
+</div>
+
 
   <!-- ✅ BEST IN CLASS PAGE -->
   <div id="bestClassPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
@@ -444,7 +450,7 @@
   </div>
 
   <!-- cache-bust -->
-  <script src="app.js?v=12002"></script>
+  <script src="app.js?v=12006"></script>
 </body>
 </html>
 
