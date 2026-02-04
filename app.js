@@ -698,32 +698,56 @@ function exportCSV() {
 
 // ============================================================
 // ✅ ONLINE BEST-OF PAGES (Best Class / Variety / Breed)
+// ✅ JSONP leaderboard fetch (no CORS, no "failed to fetch")
 // ============================================================
 
-function buildLeaderboardUrl(showName) {
-  const qs = new URLSearchParams({
-    mode: "leaderboard",
-    show: showName,
-    passcode: ADMIN_PASSCODE
+function fetchOnlineLeaderboardOrThrow() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.onLine) return reject(new Error("No internet"));
+
+    const showName = localStorage.getItem("currentShow") || "";
+    if (!showName) return reject(new Error("No show selected"));
+
+    const cbName = "jsonp_cb_" + Math.random().toString(16).slice(2) + "_" + Date.now();
+    const qs = new URLSearchParams({
+      mode: "leaderboard",
+      show: showName,
+      passcode: ADMIN_PASSCODE,
+      callback: cbName
+    });
+
+    const url = `${ADMIN_URL}?${qs.toString()}`;
+    const script = document.createElement("script");
+    let done = false;
+
+    window[cbName] = (data) => {
+      done = true;
+      try { delete window[cbName]; } catch(e) { window[cbName] = undefined; }
+      script.remove();
+
+      if (!data || data.ok !== true) {
+        return reject(new Error(data?.error || "Unknown error"));
+      }
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      if (done) return;
+      try { delete window[cbName]; } catch(e) { window[cbName] = undefined; }
+      script.remove();
+      reject(new Error("failed to fetch"));
+    };
+
+    setTimeout(() => {
+      if (done) return;
+      try { delete window[cbName]; } catch(e) { window[cbName] = undefined; }
+      script.remove();
+      reject(new Error("timeout"));
+    }, 8000);
+
+    document.body.appendChild(script);
+    script.src = url;
   });
-  return `${ADMIN_URL}?${qs.toString()}`;
-}
-
-async function fetchOnlineLeaderboardOrThrow() {
-  if (!navigator.onLine) throw new Error("No internet");
-
-  const showName = localStorage.getItem("currentShow") || "";
-  if (!showName) throw new Error("No show selected");
-
-  const url = buildLeaderboardUrl(showName);
-  const res = await fetch(url, { method: "GET" });
-  if (!res.ok) throw new Error("HTTP " + res.status);
-
-  const data = await res.json();
-  if (!data || data.ok !== true) {
-    throw new Error(data?.error || "Unknown error");
-  }
-  return data;
 }
 
 function backToResultsFromBestPages() {
@@ -849,15 +873,15 @@ async function openBestInBreedPage() {
       const total = (b.total ?? 0);
 
       return `
-        <div class="winner-card" style="background:${bg};">
-          <div class="winner-title">${title}</div>
-          <div class="winner-grid">
-            <div class="kv"><b>Show:</b> ${escapeHtml(showName)}</div>
-            <div class="kv"><b>Judge:</b> ${escapeHtml(judgeName)}</div>
-            <div class="kv"><b>Class:</b> ${escapeHtml(cls)}</div>
-            <div class="kv"><b>Colour:</b> ${escapeHtml(col)}</div>
-            <div class="kv"><b>Bird ID:</b> ${escapeHtml(birdId)}</div>
-            <div class="kv"><b>Total:</b> ${escapeHtml(String(total))}</div>
+        <div style="padding:14px;border-radius:16px;background:${bg};margin:12px 0;box-shadow:0 8px 20px rgba(0,0,0,0.08);">
+          <div style="font-weight:900;font-size:18px;margin-bottom:10px;">${title}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><b>Show:</b> ${escapeHtml(showName)}</div>
+            <div><b>Judge:</b> ${escapeHtml(judgeName)}</div>
+            <div><b>Class:</b> ${escapeHtml(cls)}</div>
+            <div><b>Colour:</b> ${escapeHtml(col)}</div>
+            <div><b>Bird ID:</b> ${escapeHtml(birdId)}</div>
+            <div><b>Total:</b> ${escapeHtml(String(total))}</div>
           </div>
         </div>
       `;
