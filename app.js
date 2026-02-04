@@ -3,42 +3,26 @@ const ADMIN_URL = "https://script.google.com/macros/s/AKfycbyg0HaUQxeged-8o5TN-s
 const ADMIN_PASSCODE = "AVIOMED2026".trim();
 
 // ===================== SCREEN CONTROL =====================
-function lockScroll(locked) {
-  document.body.style.overflow = locked ? "hidden" : "auto";
-}
+function lockScroll(locked) { document.body.style.overflow = locked ? "hidden" : "auto"; }
 
 function showOnly(screenId) {
-  const ids = [
-    "introScreen", "showScreen", "judgeScreen", "classScreen", "colourScreen",
-    "judgingScreen", "resultsScreen"
-  ];
-
+  const ids = ["introScreen","showScreen","judgeScreen","classScreen","colourScreen","judgingScreen","resultsScreen"];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-
-    if (id === screenId) {
-      el.style.display = (id === "judgingScreen" || id === "resultsScreen") ? "block" : "flex";
-    } else {
-      el.style.display = "none";
-    }
+    if (id === screenId) el.style.display = (id === "judgingScreen" || id === "resultsScreen") ? "block" : "flex";
+    else el.style.display = "none";
   });
-
   lockScroll(!(screenId === "judgingScreen" || screenId === "resultsScreen"));
 }
 
 window.addEventListener("load", () => {
   showOnly("introScreen");
   lockScroll(true);
-
-  if (navigator.onLine) {
-    try { syncPending(); } catch(e) {}
-  }
+  if (navigator.onLine) { try { syncPending(); } catch(e) {} }
 });
 
-window.addEventListener("online", () => {
-  try { syncPending(); } catch(e) {}
-});
+window.addEventListener("online", () => { try { syncPending(); } catch(e) {} });
 
 // ===================== DEVICE + SYNC QUEUE =====================
 function getDeviceId() {
@@ -59,51 +43,24 @@ function queueForSync(entry) {
 function sendEntriesToAdmin(entries) {
   const payload = { passcode: ADMIN_PASSCODE, entries };
   const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=utf-8" });
-
   const ok = navigator.sendBeacon(ADMIN_URL, blob);
   if (!ok) throw new Error("sendBeacon failed");
-  return { ok: true, inserted: entries.length };
+  return { ok:true, inserted: entries.length };
 }
 
 function syncPending() {
   const pending = JSON.parse(localStorage.getItem("pendingSync") || "[]");
   if (pending.length === 0) return { ok:true, inserted:0 };
-
   sendEntriesToAdmin(pending);
   localStorage.removeItem("pendingSync");
   return { ok:true, inserted: pending.length };
 }
 
-function syncNow() {
-  if (!navigator.onLine) {
-    alert("No internet right now. Birds are saved and will sync later.");
-    return;
-  }
-  try {
-    const r = syncPending();
-    alert("Synced pending birds: " + (r.inserted || 0));
-  } catch (e) {
-    alert("Sync failed. Try again when signal is stronger.");
-  }
-}
-
 // ===================== COLOURS =====================
 const COLOUR_LABELS = {
-  BLACK: "Black",
-  BLUE: "Blue",
-  BUFF: "Buff",
-  WHITE: "White",
-  SPLASH: "Splash",
-  CHOCOLATE: "Chocolate",
-  LAVENDER: "Lavender",
-  JUBILEE: "Jubilee",
-  CUCKOO: "Cuckoo",
-  PARTRIDGE: "Partridge",
-  SILVER_LACED: "Silver Laced",
-  GOLD_LACED: "Gold Laced",
-  RED: "Red",
-  ISABEL: "Isabel",
-  CRELE: "Crele"
+  BLACK:"Black", BLUE:"Blue", BUFF:"Buff", WHITE:"White", SPLASH:"Splash", CHOCOLATE:"Chocolate",
+  LAVENDER:"Lavender", JUBILEE:"Jubilee", CUCKOO:"Cuckoo", PARTRIDGE:"Partridge",
+  SILVER_LACED:"Silver Laced", GOLD_LACED:"Gold Laced", RED:"Red", ISABEL:"Isabel", CRELE:"Crele"
 };
 
 function saGroupForColour(colourKey) {
@@ -112,7 +69,7 @@ function saGroupForColour(colourKey) {
   return "SA_BUFF_WHITE_OTHER";
 }
 
-// ===================== SA TEMPLATES (100 POINTS) =====================
+// ===================== SA TEMPLATES =====================
 const TEMPLATES = {
   SA_BLACK: {
     name: "THE BLACK (SA) — Total 100",
@@ -127,7 +84,6 @@ const TEMPLATES = {
       { key:"tail", label:"Tail", max:5, help:"" }
     ]
   },
-
   SA_BLUE_LAV: {
     name: "THE BLUE AND LAVENDER (SA) — Total 100",
     criteria: [
@@ -139,7 +95,6 @@ const TEMPLATES = {
       { key:"condition", label:"Condition", max:10, help:"" }
     ]
   },
-
   SA_BUFF_WHITE_OTHER: {
     name: "THE BUFF, WHITE AND OTHER COLOURS (SA) — Total 100",
     criteria: [
@@ -153,39 +108,28 @@ const TEMPLATES = {
   }
 };
 
-// ===================== DISQUALIFICATION =====================
+// ===================== DQ LISTS =====================
 const DQ_GENERAL = [
-  "Side spikes on comb",
-  "White in ear-lobes",
-  "Feather or fluff on shanks or feet",
-  "Long legs",
-  "Any deformity",
-  "Yellow skin, yellow beak and yellow on the shanks or feet",
-  "Any yellow or sappiness in the white",
-  "Coarseness in head, legs or feathers of the buff",
-  "Any trimming or faking"
+  "Side spikes on comb","White in ear-lobes","Feather or fluff on shanks or feet","Long legs","Any deformity",
+  "Yellow skin, yellow beak and yellow on the shanks or feet","Any yellow or sappiness in the white",
+  "Coarseness in head, legs or feathers of the buff","Any trimming or faking"
 ];
 
 const DQ_BY_COLOUR = {
-  BLACK: [
+  BLACK:[
     "More than one spot (~12mm) of positive white in any part of plumage",
     "Two or more feathers tipped/edged with positive white",
     "Light coloured beak and eyes",
     "Leg colour other than dark slate"
   ],
-  BLUE: [
+  BLUE:[
     "Red, yellow or positive white in plumage",
     "Light coloured beak and eyes",
     "Leg colour other than black or blue"
   ],
-  BUFF: [
-    "Blue shanks",
-    "Coarseness in face"
-  ],
-  WHITE: [
-    "Blue shanks"
-  ],
-  SPLASH: [
+  BUFF:["Blue shanks","Coarseness in face"],
+  WHITE:["Blue shanks"],
+  SPLASH:[
     "Feathers not to be more than 50% black (Splash Black rule)",
     "Feathers not to be more than 50% blue (Splash Blue rule)",
     "Any appearance of rust in plumage"
@@ -195,22 +139,17 @@ const DQ_BY_COLOUR = {
 function populateDQReasons(colourKey) {
   const sel = document.getElementById("dqReason");
   if (!sel) return;
-
   const list = [
     ...DQ_GENERAL.map(x => `GENERAL: ${x}`),
     ...(DQ_BY_COLOUR[colourKey] ? DQ_BY_COLOUR[colourKey].map(x => `COLOUR: ${x}`) : [])
   ];
-
   sel.innerHTML = "";
   const first = document.createElement("option");
-  first.value = "";
-  first.textContent = "-- Select reason --";
+  first.value = ""; first.textContent = "-- Select reason --";
   sel.appendChild(first);
-
   list.forEach(item => {
     const opt = document.createElement("option");
-    opt.value = item;
-    opt.textContent = item;
+    opt.value = item; opt.textContent = item;
     sel.appendChild(opt);
   });
 }
@@ -227,10 +166,8 @@ function saveShowAndContinue() {
   const sel = document.getElementById("showSelect");
   const showName = (sel ? sel.value : "").trim();
   if (!showName) return alert("Please choose a show.");
-
   localStorage.setItem("currentShow", showName);
   document.getElementById("showNameDisplay").textContent = showName;
-
   showOnly("judgeScreen");
   const savedJudge = localStorage.getItem("currentJudge") || "";
   const j = document.getElementById("judgeName");
@@ -241,54 +178,36 @@ function saveJudgeAndContinue() {
   const j = document.getElementById("judgeName");
   const judgeName = (j ? j.value : "").trim();
   if (!judgeName) return alert("Please enter the judge name.");
-
   localStorage.setItem("currentJudge", judgeName);
   document.getElementById("judgeNameDisplay").textContent = judgeName;
-
   showOnly("classScreen");
-  const savedClass = localStorage.getItem("currentClass") || "";
-  const cd = document.getElementById("classSelectedDisplay");
-  if (cd) cd.textContent = savedClass || "None";
+  document.getElementById("classSelectedDisplay").textContent = localStorage.getItem("currentClass") || "None";
 }
 
-// Tap class = auto-next
 function selectClass(className) {
   localStorage.setItem("currentClass", className);
   document.getElementById("classSelectedDisplay").textContent = className;
-
-  setTimeout(() => {
-    const cs = document.getElementById("classScreen");
-    if (cs && cs.style.display !== "none") saveClassAndContinue();
-  }, 120);
+  setTimeout(() => saveClassAndContinue(), 120);
 }
 
 function saveClassAndContinue() {
   const className = localStorage.getItem("currentClass") || "";
   if (!className) return alert("Please select a class first.");
-
   document.getElementById("classNameDisplay").textContent = className;
   showOnly("colourScreen");
-
   const savedColour = localStorage.getItem("currentColour") || "";
-  document.getElementById("colourSelectedDisplay").textContent =
-    savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
+  document.getElementById("colourSelectedDisplay").textContent = savedColour ? (COLOUR_LABELS[savedColour] || savedColour) : "None";
 }
 
-// Tap colour = auto-next
 function selectColour(colourKey) {
   localStorage.setItem("currentColour", colourKey);
   document.getElementById("colourSelectedDisplay").textContent = COLOUR_LABELS[colourKey] || colourKey;
-
-  setTimeout(() => {
-    const cs = document.getElementById("colourScreen");
-    if (cs && cs.style.display !== "none") saveColourAndContinue();
-  }, 120);
+  setTimeout(() => saveColourAndContinue(), 120);
 }
 
 function saveColourAndContinue() {
   const colourKey = localStorage.getItem("currentColour") || "";
   if (!colourKey) return alert("Please select a colour first.");
-
   document.getElementById("colourNameDisplay").textContent = COLOUR_LABELS[colourKey] || colourKey;
 
   renderTemplateForColour(colourKey);
@@ -303,20 +222,15 @@ function saveColourAndContinue() {
   if (birdIdInput) birdIdInput.focus();
 }
 
-// Back buttons
 function backToClass() { showOnly("classScreen"); }
 function backToColour() { showOnly("colourScreen"); }
 function backToJudgingFromResults() { showOnly("judgingScreen"); lockScroll(false); }
 
 function newShowHome() {
-  const fullReset = confirm(
-    "Start a new show?\n\nOK = Clear ALL saved birds on this device.\nCancel = Keep saved birds but go back to Home."
-  );
+  const fullReset = confirm("Start a new show?\n\nOK = Clear ALL saved birds on this device.\nCancel = Keep saved birds but go back to Home.");
   if (fullReset) localStorage.removeItem("birds");
-
   localStorage.removeItem("currentClass");
   localStorage.removeItem("currentColour");
-
   showOnly("introScreen");
   lockScroll(true);
 }
@@ -331,7 +245,6 @@ function blurBirdId() {
 function renderTemplateForColour(colourKey) {
   const groupKey = saGroupForColour(colourKey);
   const template = TEMPLATES[groupKey];
-
   const container = document.getElementById("scoringContainer");
   const tName = document.getElementById("templateName");
   if (!container || !tName) return;
@@ -347,9 +260,7 @@ function renderTemplateForColour(colourKey) {
         ${c.help ? `<div class="score-help">${c.help}</div>` : ""}
         <div class="score-line">
           <input type="range"
-                 min="0"
-                 max="${c.max}"
-                 value="0"
+                 min="0" max="${c.max}" value="0"
                  class="score-slider"
                  data-crit-key="${c.key}"
                  oninput="updateSliderValue(this)"
@@ -377,10 +288,7 @@ function calculateTotal() {
   const dqToggle = document.getElementById("dqToggle");
   if (!totalDisplay || !container) return;
 
-  if (dqToggle && dqToggle.checked) {
-    totalDisplay.textContent = "0";
-    return;
-  }
+  if (dqToggle && dqToggle.checked) { totalDisplay.textContent = "0"; return; }
 
   let total = 0;
   container.querySelectorAll(".score-slider").forEach(sl => total += Number(sl.value));
@@ -399,7 +307,6 @@ function getScoresObject() {
     const el = container.querySelector(`[data-crit-key="${c.key}"]`);
     scores[c.key] = el ? Number(el.value) : 0;
   });
-
   return scores;
 }
 
@@ -412,18 +319,12 @@ function prepareNextBird() {
       if (badge) badge.textContent = "0";
     });
   }
-
   const c = document.getElementById("commentBox");
   if (c) c.value = "";
-
   resetDQUI();
   calculateTotal();
-
   const birdIdInput = document.getElementById("birdId");
-  if (birdIdInput) {
-    birdIdInput.value = "";
-    birdIdInput.focus();
-  }
+  if (birdIdInput) { birdIdInput.value = ""; birdIdInput.focus(); }
 }
 
 // ===================== DQ UI =====================
@@ -432,7 +333,6 @@ function resetDQUI() {
   const fields = document.getElementById("dqFields");
   const reason = document.getElementById("dqReason");
   const note = document.getElementById("dqNote");
-
   if (toggle) toggle.checked = false;
   if (fields) fields.style.display = "none";
   if (reason) reason.value = "";
@@ -449,10 +349,7 @@ function toggleDQ() {
 
 function quickDQ() {
   const toggle = document.getElementById("dqToggle");
-  if (toggle && !toggle.checked) {
-    toggle.checked = true;
-    toggleDQ();
-  }
+  if (toggle && !toggle.checked) { toggle.checked = true; toggleDQ(); }
   const reason = document.getElementById("dqReason");
   if (reason) reason.focus();
 }
@@ -460,55 +357,29 @@ function quickDQ() {
 // ===================== SAVE BIRD =====================
 function saveBird() {
   const birdId = document.getElementById("birdId")?.value.trim() || "";
-
   const showName = localStorage.getItem("currentShow") || "";
   const judgeName = localStorage.getItem("currentJudge") || "";
   const className = localStorage.getItem("currentClass") || "";
   const colourKey = localStorage.getItem("currentColour") || "";
 
-  if (!showName || !judgeName || !className || !colourKey) {
-    alert("Please select show, judge, class, and colour first.");
-    return;
-  }
-  if (!birdId) {
-    alert("Please enter Bird ID");
-    return;
-  }
+  if (!showName || !judgeName || !className || !colourKey) return alert("Please select show, judge, class, and colour first.");
+  if (!birdId) return alert("Please enter Bird ID");
 
   const isDQ = document.getElementById("dqToggle")?.checked || false;
   const dqReason = (document.getElementById("dqReason")?.value || "").trim();
   const dqNote = (document.getElementById("dqNote")?.value || "").trim();
-
-  if (isDQ && !dqReason) {
-    alert("If Disqualified is selected, please choose a DQ reason.");
-    return;
-  }
+  if (isDQ && !dqReason) return alert("If Disqualified is selected, please choose a DQ reason.");
 
   const comment = (document.getElementById("commentBox")?.value || "").trim();
   const scores = getScoresObject();
   const total = isDQ ? 0 : Number(document.getElementById("total")?.textContent || "0");
 
-  const bird = {
-    show: showName,
-    judge: judgeName,
-    class: className,
-    colour: colourKey,
-    id: birdId,
-    total,
-    scores,
-    disqualified: isDQ,
-    dqReason,
-    dqNote,
-    comment,
-    timestamp: new Date().toISOString()
-  };
+  const bird = { show:showName, judge:judgeName, class:className, colour:colourKey, id:birdId, total, scores, disqualified:isDQ, dqReason, dqNote, comment, timestamp:new Date().toISOString() };
 
-  // Save locally
   const birds = JSON.parse(localStorage.getItem("birds") || "[]");
   birds.push(bird);
   localStorage.setItem("birds", JSON.stringify(birds));
 
-  // Build admin entry
   const deviceId = getDeviceId();
   const entryKey = `${deviceId}|${bird.show}|${bird.judge}|${bird.class}|${bird.colour}|${bird.id}|${bird.timestamp}`;
 
@@ -529,19 +400,14 @@ function saveBird() {
     timestamp: bird.timestamp
   };
 
-  // Auto-send or queue
-  if (navigator.onLine) {
-    try { sendEntriesToAdmin([syncEntry]); }
-    catch(e) { queueForSync(syncEntry); }
-  } else {
-    queueForSync(syncEntry);
-  }
+  if (navigator.onLine) { try { sendEntriesToAdmin([syncEntry]); } catch(e) { queueForSync(syncEntry); } }
+  else queueForSync(syncEntry);
 
   alert("Bird saved!");
   prepareNextBird();
 }
 
-// ===================== RESULTS (JSONP LEADERBOARD) =====================
+// ===================== RESULTS (ONLINE via JSONP) =====================
 function jsonpLoad(url) {
   return new Promise((resolve, reject) => {
     const cb = "cb_" + Math.random().toString(36).slice(2);
@@ -557,11 +423,7 @@ function jsonpLoad(url) {
       if (s && s.parentNode) s.parentNode.removeChild(s);
     }
 
-    s.onerror = () => {
-      cleanup();
-      reject(new Error("JSONP failed"));
-    };
-
+    s.onerror = () => { cleanup(); reject(new Error("JSONP failed")); };
     s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
     document.body.appendChild(s);
   });
@@ -574,17 +436,21 @@ async function fetchLeaderboard(showName) {
   return await jsonpLoad(url);
 }
 
-// called by 3 buttons
+// Wrapper buttons (Results page)
+function viewBestClassColour(){ loadResultsMode("classColour"); }
+function viewBestVariety(){ loadResultsMode("variety"); }
+function viewBestInBreed(){ loadResultsMode("breed"); }
+
 async function loadResultsMode(mode) {
   const showName = localStorage.getItem("currentShow") || "";
   const className = localStorage.getItem("currentClass") || "";
 
+  showOnly("resultsScreen");
   document.getElementById("resultsShowName").textContent = showName || "-";
   document.getElementById("resultsClassName").textContent = className || "-";
 
   const resultsDiv = document.getElementById("resultsPageContent");
- resultsDiv.innerHTML = `<p style="font-weight:900;">Loading ONLINE results…</p>
-<p style="opacity:0.8;">If this hangs, the admin URL or deployment permissions are wrong.</p>`;
+  resultsDiv.innerHTML = `<p style="font-weight:900;">Loading ONLINE results…</p>`;
 
   try {
     const data = await fetchLeaderboard(showName);
@@ -594,34 +460,23 @@ async function loadResultsMode(mode) {
     else if (mode === "variety") renderBestVariety(data, resultsDiv);
     else renderBestInBreed(data, resultsDiv);
 
-    return;
-} catch (e) {
-  resultsDiv.innerHTML = `
-    <p style="color:#b91c1c;font-weight:900;">
-      ONLINE RESULTS FAILED → showing LOCAL device results instead.
-    </p>
-    <p style="opacity:0.85;">
-      Reason: ${String(e && e.message ? e.message : e)}
-    </p>
-  `;
-  renderLocalFallback(resultsDiv);
+  } catch (e) {
+    resultsDiv.innerHTML = `
+      <p style="color:#b91c1c;font-weight:900;">
+        ONLINE RESULTS FAILED → showing LOCAL device results instead.
+      </p>
+      <p style="opacity:0.85;">Reason: ${String(e && e.message ? e.message : e)}</p>
+    `;
+    renderLocalFallback(resultsDiv);
+  }
 }
 
-}
-
-function showResults() {
-  showOnly("resultsScreen");
-  loadResultsMode("classColour"); // default view
-}
+function showResults() { loadResultsMode("classColour"); }
 
 function renderBestClassColour(data, resultsDiv) {
   const list = (data.results && data.results.bestClassColour) ? data.results.bestClassColour : [];
   let html = `<h2>Best in Class + Colour (Top 5)</h2>`;
-
-  if (list.length === 0) {
-    resultsDiv.innerHTML = html + `<p>No data yet.</p>`;
-    return;
-  }
+  if (list.length === 0) { resultsDiv.innerHTML = html + `<p>No data yet.</p>`; return; }
 
   list.forEach(block => {
     html += `<h3>${block.class} — ${block.colour} (Entries: ${block.entries})</h3>`;
@@ -631,18 +486,13 @@ function renderBestClassColour(data, resultsDiv) {
     });
     html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
   });
-
   resultsDiv.innerHTML = html;
 }
 
 function renderBestVariety(data, resultsDiv) {
   const list = (data.results && data.results.bestVariety) ? data.results.bestVariety : [];
   let html = `<h2>Best in Variety (Top 3)</h2>`;
-
-  if (list.length === 0) {
-    resultsDiv.innerHTML = html + `<p>No data yet.</p>`;
-    return;
-  }
+  if (list.length === 0) { resultsDiv.innerHTML = html + `<p>No data yet.</p>`; return; }
 
   list.forEach(block => {
     html += `<h3>${block.colour} (Entries: ${block.entries})</h3>`;
@@ -652,7 +502,6 @@ function renderBestVariety(data, resultsDiv) {
     });
     html += `<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;">`;
   });
-
   resultsDiv.innerHTML = html;
 }
 
@@ -660,22 +509,16 @@ function renderBestInBreed(data, resultsDiv) {
   const bib = (data.results && data.results.bestInBreed) ? data.results.bestInBreed : {};
   let html = `<h2>Best in Breed</h2>`;
   html += `<p><strong>Total ranked entries:</strong> ${bib.entries || 0}</p>`;
-
-  if (!bib.winner) {
-    resultsDiv.innerHTML = html + `<p>No winner yet.</p>`;
-    return;
-  }
+  if (!bib.winner) { resultsDiv.innerHTML = html + `<p>No winner yet.</p>`; return; }
 
   html += `<p style="padding:10px;border-radius:10px;background:#ffd700;font-weight:900;">
     BEST IN BREED: Bird ${bib.winner.bird_id} — ${bib.winner.total}
   </p>`;
-
   if (bib.reserve) {
     html += `<p style="padding:10px;border-radius:10px;background:#c0c0c0;font-weight:900;">
       RESERVE BEST IN BREED: Bird ${bib.reserve.bird_id} — ${bib.reserve.total}
     </p>`;
   }
-
   resultsDiv.innerHTML = html;
 }
 
@@ -685,16 +528,11 @@ function renderLocalFallback(resultsDiv) {
   let birds = JSON.parse(localStorage.getItem("birds") || "[]");
   birds = birds.filter(b => b.show === showName && b.class === className);
 
-  if (birds.length === 0) {
-    resultsDiv.innerHTML += `<p>No local birds saved for this class.</p>`;
-    return;
-  }
-
+  if (birds.length === 0) { resultsDiv.innerHTML += `<p>No local birds saved for this class.</p>`; return; }
   birds.sort((a,b)=>Number(b.total)-Number(a.total));
+
   let html = `<h3>LOCAL — ${className} (Entries: ${birds.length})</h3>`;
-  birds.slice(0,10).forEach((b,i)=>{
-    html += `<p>${i+1}. Bird ${b.id} — <strong>${b.total}</strong></p>`;
-  });
+  birds.slice(0,10).forEach((b,i)=>{ html += `<p>${i+1}. Bird ${b.id} — <strong>${b.total}</strong></p>`; });
   resultsDiv.innerHTML += html;
 }
 
@@ -716,26 +554,9 @@ function exportCSV() {
 
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
-
   const a = document.createElement("a");
   a.href = url;
   a.download = `orpington_local_export.csv`;
   a.click();
-
   URL.revokeObjectURL(url);
-}
-
-function viewBestClassColour() {
-  showOnly("resultsScreen");
-  loadResultsMode("classColour");
-}
-
-function viewBestVariety() {
-  showOnly("resultsScreen");
-  loadResultsMode("variety");
-}
-
-function viewBestInBreed() {
-  showOnly("resultsScreen");
-  loadResultsMode("breed");
 }
