@@ -1,5 +1,5 @@
 // ===================== ADMIN SYNC SETTINGS =====================
-const ADMIN_URL = "https://script.google.com/macros/s/AKfycbyfdc_dP3sVcvn3lfjmn4-yV9rY27JZQbeAH-P9M2ii6MEesJv67Vndkw9QGd6YsRE-/exec";
+const ADMIN_URL = "https://script.google.com/macros/s/AKfycbzxSmsA7jyo6sa1JGOQphtPvA8-TJniuwr7WjLCq_SnnRVi91KqVB0mbNOK3RSM1jgc/exec";
 const ADMIN_PASSCODE = "AVIOMED2026".trim(); // MUST match EXPECTED_PASSCODE in Code.gs
 
 // ===================== SCREEN CONTROL =====================
