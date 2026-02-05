@@ -6,7 +6,7 @@
   <title>Orpington Judging</title>
 
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css?v=13011" />
+  <link rel="stylesheet" href="style.css?v=13012" />
 
 
   <style>
@@ -724,6 +724,22 @@ label[for="dqToggle"],
   color:#374151;
   margin-bottom:10px;
 }
+/* ===== CLICK FIX: make sure no overlay blocks buttons ===== */
+.screen-blue{ position: relative; }
+.screen-blue::before{ z-index: -1 !important; }   /* push glow behind everything */
+.screen-blue > *{ position: relative; z-index: 1; } /* keep buttons above */
+
+    /* ===== INTRO LAYOUT FIX: allow both buttons to fit ===== */
+#introScreen{
+  justify-content: flex-start !important; /* stop hard center */
+  padding-top: 22px !important;
+  overflow-y: auto !important;           /* allow scroll if needed */
+}
+
+#introScreen img{
+  max-height: 45vh !important;           /* stop image eating whole screen */
+  width: auto !important;
+}
 
 
 
@@ -1023,7 +1039,7 @@ label[for="dqToggle"],
   </div>
 
   <!-- cache-bust -->
-  <script src="app.js?v=13011"></script>
+  <script src="app.js?v=13012"></script>
 </body>
 </html>
 
