@@ -118,6 +118,61 @@
       font-weight:900;
       opacity:0.9;
     }
+
+    /* ==========================================================
+       ✅ SAFE DARK THEME FOR RESULTS/JUDGING ONLY (LAYOUT SAFE)
+       (added at end so it won’t break your layout)
+       ========================================================== */
+
+    #judgingScreen,
+    #resultsScreen,
+    #bestClassPage,
+    #bestVarietyPage,
+    #bestBreedPage{
+      background:#0b1220 !important;
+      color:#eef2ff !important;
+    }
+
+    #judgingScreen .card,
+    #resultsScreen .card,
+    #bestClassPage .card,
+    #bestVarietyPage .card,
+    #bestBreedPage .card{
+      background:rgba(255,255,255,0.10) !important;
+      border:1px solid rgba(255,255,255,0.16) !important;
+      color:#eef2ff !important;
+    }
+
+    #judgingScreen label,
+    #judgingScreen h1, #judgingScreen h2, #judgingScreen h3,
+    #resultsScreen h1, #resultsScreen h2, #resultsScreen h3,
+    #bestClassPage h1, #bestVarietyPage h1, #bestBreedPage h1{
+      color:#eef2ff !important;
+    }
+
+    #judgingScreen .subline,
+    #resultsScreen .subline,
+    #judgingScreen p, #resultsScreen p,
+    #bestClassPage p, #bestVarietyPage p, #bestBreedPage p{
+      color:rgba(238,242,255,0.78) !important;
+    }
+
+    .winner-card{
+      background:rgba(255,255,255,0.10) !important;
+      color:#eef2ff !important;
+      border:1px solid rgba(255,255,255,0.16) !important;
+    }
+    .winner-title{ color:#eef2ff !important; }
+
+    #judgingScreen button,
+    #resultsScreen button,
+    #bestClassPage button,
+    #bestVarietyPage button,
+    #bestBreedPage button{
+      background:rgba(255,255,255,0.10) !important;
+      color:#eef2ff !important;
+      border:1px solid rgba(255,255,255,0.16) !important;
+    }
   </style>
 </head>
 
@@ -329,18 +384,17 @@
       </div>
 
       <div class="section-title">Export final results</div>
-<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-  <button type="button" onclick="exportWinnersOnline()"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-    Show Winners Export
-  </button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <button type="button" onclick="exportWinnersOnline()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          Show Winners Export
+        </button>
 
-  <button type="button" onclick="exportAllOnline()"
-    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
-    ALL SHOW RESULTS
-  </button>
-</div>
-
+        <button type="button" onclick="exportAllOnline()"
+          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:900; cursor:pointer;">
+          ALL SHOW RESULTS
+        </button>
+      </div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
         <button type="button" onclick="backToJudgingFromResults()"
