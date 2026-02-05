@@ -6,7 +6,7 @@
   <title>Orpington Judging</title>
 
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css?v=13006" />
+  <link rel="stylesheet" href="style.css?v=13007" />
 
 
   <style>
@@ -547,6 +547,46 @@ label[for="dqToggle"],
 #dqToggle * {
   opacity: 1 !important;
 }
+    /* =========================
+   DQ BOX: white background + dark blue text
+   Paste at the VERY END
+========================= */
+
+#judgingScreen .dq-box{
+  background:#f9fafb !important;
+  border:1px solid #e5e7eb !important;
+  color:#1e3a8a !important;
+}
+
+#judgingScreen .dq-box label,
+#judgingScreen .dq-box h1,
+#judgingScreen .dq-box h2,
+#judgingScreen .dq-box h3{
+  color:#1e3a8a !important;
+  opacity:1 !important;
+}
+
+/* The checkbox line + the word “Disqualified” */
+#judgingScreen #dqToggle{
+  accent-color:#1e3a8a;
+}
+#judgingScreen .dq-box label{
+  color:#1e3a8a !important;
+}
+
+/* Dropdown + input text */
+#judgingScreen #dqReason,
+#judgingScreen #dqNote{
+  background:#ffffff !important;
+  border:1px solid #d1d5db !important;
+  color:#1e3a8a !important;
+}
+
+/* Make the dropdown options readable */
+#judgingScreen #dqReason option{
+  color:#111827 !important;
+}
+
 
 
   </style>
@@ -835,7 +875,7 @@ label[for="dqToggle"],
   </div>
 
   <!-- cache-bust -->
-  <script src="app.js?v=13006"></script>
+  <script src="app.js?v=13007"></script>
 </body>
 </html>
 
