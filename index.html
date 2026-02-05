@@ -173,6 +173,75 @@
       color:#eef2ff !important;
       border:1px solid rgba(255,255,255,0.16) !important;
     }
+    /* ===== Modern dark style (only on pages with class="darkpage") ===== */
+.darkpage{
+  background: radial-gradient(900px 520px at 15% 5%, rgba(250,204,21,0.10), transparent 55%),
+              radial-gradient(900px 520px at 85% 20%, rgba(20,184,166,0.10), transparent 55%),
+              linear-gradient(180deg, #0b1220, #0f1b3a 60%, #122a63) !important;
+  color:#eef2ff !important;
+}
+
+.darkpage h1, .darkpage h2, .darkpage h3,
+.darkpage label{
+  color:#eef2ff !important;
+}
+
+.darkpage .subline,
+.darkpage p,
+.darkpage .muted{
+  color: rgba(238,242,255,0.78) !important;
+}
+
+.darkpage .card{
+  background: rgba(255,255,255,0.10) !important;
+  border: 1px solid rgba(255,255,255,0.16) !important;
+  border-radius:18px !important;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.35) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.darkpage .winner-card{
+  background: rgba(255,255,255,0.10) !important;
+  border: 1px solid rgba(255,255,255,0.16) !important;
+  color:#eef2ff !important;
+}
+
+.darkpage input[type="text"],
+.darkpage textarea,
+.darkpage select{
+  background: rgba(255,255,255,0.10) !important;
+  color:#eef2ff !important;
+  border: 1px solid rgba(255,255,255,0.16) !important;
+}
+
+.darkpage textarea::placeholder,
+.darkpage input::placeholder{
+  color: rgba(238,242,255,0.55) !important;
+}
+
+/* override your inline button background:#fff */
+.darkpage button{
+  background: rgba(255,255,255,0.10) !important;
+  color:#eef2ff !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  border-radius:14px !important;
+  font-weight:900 !important;
+}
+
+/* keep danger + yellow special */
+.darkpage .danger{
+  background:#dc2626 !important;
+  color:#fff !important;
+  border:none !important;
+}
+
+.darkpage .btn-yellow{
+  background:#facc15 !important;
+  color:#1e3a8a !important;
+  border:none !important;
+}
+
   </style>
 </head>
 
@@ -293,7 +362,7 @@
   </div>
 
   <!-- JUDGING SCREEN -->
-  <div id="judgingScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff;">
+  <div id="judgingScreen" class="darkpage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#eef2ff;">
     <h1>🐔 Orpington Judging</h1>
 
     <p class="subline">Show: <strong><span id="showNameDisplay">Not selected</span></strong></p>
@@ -355,7 +424,7 @@
   </div>
 
   <!-- RESULTS SCREEN -->
-  <div id="resultsScreen" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+  <div id="resultsScreen" class="darkpage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Results</h1>
 
     <p class="subline">Show: <strong><span id="resultsShowName">-</span></strong></p>
@@ -413,7 +482,7 @@
   </div>
 
   <!-- BEST IN CLASS PAGE -->
-  <div id="bestClassPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+  <div id="bestClassPage" class="darkpage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Best in Class (Top 5)</h1>
 
     <div style="margin-bottom:12px;">
@@ -429,7 +498,7 @@
   </div>
 
   <!-- BEST IN VARIETY PAGE -->
-  <div id="bestVarietyPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+  <div id="bestVarietyPage" class="darkpage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Best in Variety (Top 3)</h1>
 
     <div style="margin-bottom:12px;">
@@ -445,7 +514,7 @@
   </div>
 
   <!-- BEST IN BREED PAGE -->
-  <div id="bestBreedPage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
+  <div id="bestBreedPage" class="darkpage" style="display:none; height:100vh; overflow:auto; padding:20px; background:#ffffff;">
     <h1>🏆 Best in Breed</h1>
 
     <div style="margin-bottom:12px;">
@@ -459,7 +528,7 @@
   </div>
 
   <!-- cache-bust -->
-  <script src="app.js?v=13002"></script>
+  <script src="app.js?v=13003"></script>
 </body>
 </html>
 
