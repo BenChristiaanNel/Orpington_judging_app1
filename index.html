@@ -453,6 +453,64 @@ button:active{ transform: scale(0.99); }
   .btn-yellow{ padding:18px 24px !important; font-size:18px !important; }
   #introScreen img{ max-width: 86% !important; }
 }
+/* =========================================
+   DQ + CARD TEXT VISIBILITY FIX
+   (keeps premium style, restores contrast)
+========================================= */
+
+/* DQ section – make text fully readable */
+.dq-box,
+.dq-box label,
+.dq-box select,
+.dq-box input,
+.dq-box option{
+  color: var(--text) !important;
+  opacity: 1 !important;
+}
+
+/* Explicitly fix the "Disqualified" label */
+#dqToggle,
+#dqToggle + span,
+.dq-box label{
+  color: var(--text) !important;
+  opacity: 1 !important;
+  font-weight: 900 !important;
+}
+
+/* DQ reason dropdown text */
+#dqReason{
+  color: var(--text) !important;
+  background: rgba(255,255,255,0.12) !important;
+}
+
+/* DQ note input */
+#dqNote{
+  color: var(--text) !important;
+}
+
+/* Cards: ensure important content never fades */
+.card,
+.card p,
+.card strong,
+.card b,
+.card span{
+  opacity: 1 !important;
+}
+
+/* Winner cards text clarity */
+.winner-card,
+.winner-card p,
+.winner-card span,
+.winner-card .kv,
+.winner-card .winner-title{
+  color: var(--text) !important;
+  opacity: 1 !important;
+}
+
+/* Muted text stays muted ONLY where explicitly intended */
+.muted{
+  opacity: 0.75 !important;
+}
 
 
   </style>
@@ -741,7 +799,7 @@ button:active{ transform: scale(0.99); }
   </div>
 
   <!-- cache-bust -->
-  <script src="app.js?v=13004"></script>
+  <script src="app.js?v=13005"></script>
 </body>
 </html>
 
