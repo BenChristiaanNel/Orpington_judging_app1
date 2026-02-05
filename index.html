@@ -740,6 +740,12 @@ label[for="dqToggle"],
   max-height: 45vh !important;           /* stop image eating whole screen */
   width: auto !important;
 }
+/* ✅ IMPORTANT: overlays must never block clicks */
+.screen-blue::before,
+.darkpage::before,
+#introScreen::before{
+  pointer-events: none !important;
+}
 
 
 
