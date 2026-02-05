@@ -6,7 +6,7 @@
   <title>Orpington Judging</title>
 
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css?v=13009" />
+  <link rel="stylesheet" href="style.css?v=13010" />
 
 
   <style>
@@ -672,6 +672,58 @@ label[for="dqToggle"],
   color:#1e3a8a !important;
   border:1px solid #d1d5db !important;
 }
+/* =====================================================
+   BEST IN BREED — FULL GOLD & SILVER CARDS
+   ===================================================== */
+
+/* ---------- GOLD: Best in Breed Winner ---------- */
+#bestBreedPage .winner-card:first-of-type{
+  background: linear-gradient(180deg, #fde68a, #facc15) !important;
+  border: 2px solid #f59e0b !important;
+  box-shadow: 0 16px 34px rgba(250,204,21,0.45) !important;
+}
+
+/* ---------- SILVER: Reserve Best in Breed ---------- */
+#bestBreedPage .winner-card:nth-of-type(2){
+  background: linear-gradient(180deg, #e5e7eb, #d1d5db) !important;
+  border: 2px solid #9ca3af !important;
+  box-shadow: 0 14px 30px rgba(156,163,175,0.45) !important;
+}
+
+/* ---------- TEXT COLOUR (dark blue, readable) ---------- */
+#bestBreedPage .winner-card,
+#bestBreedPage .winner-card *{
+  color:#1e3a8a !important;
+  opacity:1 !important;
+}
+
+/* ---------- Title emphasis ---------- */
+#bestBreedPage .winner-card:first-of-type .winner-title{
+  font-size:22px;
+  font-weight:950;
+}
+
+#bestBreedPage .winner-card:nth-of-type(2) .winner-title{
+  font-size:20px;
+  font-weight:900;
+}
+
+/* ---------- Optional badges (clean & subtle) ---------- */
+#bestBreedPage .winner-card:first-of-type::before{
+  content:"🥇 BEST IN BREED";
+  display:block;
+  font-weight:900;
+  color:#92400e;
+  margin-bottom:10px;
+}
+
+#bestBreedPage .winner-card:nth-of-type(2)::before{
+  content:"🥈 RESERVE BEST IN BREED";
+  display:block;
+  font-weight:900;
+  color:#374151;
+  margin-bottom:10px;
+}
 
 
 
@@ -961,7 +1013,7 @@ label[for="dqToggle"],
   </div>
 
   <!-- cache-bust -->
-  <script src="app.js?v=13009"></script>
+  <script src="app.js?v=13010"></script>
 </body>
 </html>
 
