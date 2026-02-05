@@ -2,6 +2,43 @@
 const ADMIN_URL = "https://script.google.com/macros/s/AKfycbyosFuaJ865q9Jy4qeVwo00MTC5XMsS_reV9MRnS-6G4fgct1AByOq6XlCPZwcXYFLa/exec";
 const ADMIN_PASSCODE = "AVIOMED2026".trim(); // MUST match EXPECTED_PASSCODE in Code.gs
 
+// ===================== MODE: JUDGE vs ADMIN =====================
+const MODE_KEY = "appMode"; // "judge" | "admin"
+
+function setMode(mode) {
+  localStorage.setItem(MODE_KEY, mode);
+  applyModeVisibility();
+}
+
+function getMode() {
+  return localStorage.getItem(MODE_KEY) || "judge";
+}
+
+function isAdminMode() {
+  return getMode() === "admin";
+}
+
+// Show/hide admin UI safely (no layout breaks)
+function applyModeVisibility() {
+  const winners = document.getElementById("adminWinnersSection");
+  const exports = document.getElementById("adminExportSection");
+  const backBtn = document.getElementById("backToJudgingBtn");
+
+  // These IDs exist only on results screen; ignore if not present
+  if (!winners || !exports || !backBtn) return;
+
+  if (isAdminMode()) {
+    winners.style.display = "block";
+    exports.style.display = "block";
+    backBtn.style.display = "none"; // admin shouldn’t go judge
+  } else {
+    winners.style.display = "none"; // judges don’t see winners
+    exports.style.display = "none"; // judges don’t export
+    backBtn.style.display = "inline-block";
+  }
+}
+
+
 // ===================== SCREEN CONTROL =====================
 function lockScroll(locked) {
   document.body.style.overflow = locked ? "hidden" : "auto";
@@ -222,6 +259,8 @@ function populateDQReasons(colourKey) {
 
 // ===================== FLOW =====================
 function startApp() {
+  ADMIN_FLOW = false;
+  setMode("judge");
   showOnly("showScreen");
 
   const savedShow = localStorage.getItem("currentShow") || "";
@@ -244,6 +283,26 @@ function saveShowAndContinue() {
   const j = document.getElementById("judgeName");
   if (j) j.value = savedJudge;
 }
+
+  // ✅ If admin flow: go straight to Results screen (no judge/class needed)
+  if (ADMIN_FLOW || isAdminMode()) {
+    document.getElementById("resultsShowName").textContent = showName || "-";
+    document.getElementById("resultsJudgeName").textContent = "ADMIN";
+    document.getElementById("resultsClassName").textContent = "ALL CLASSES";
+
+    showOnly("resultsScreen");
+    applyModeVisibility();
+
+    const resultsDiv = document.getElementById("resultsPageContent");
+    if (resultsDiv) {
+      resultsDiv.innerHTML = `
+        <p><strong>Admin Mode:</strong> Choose Winners pages or Export options above.</p>
+        <p style="opacity:0.85;">(Judging is hidden in admin mode.)</p>
+      `;
+    }
+    return;
+  }
+
 
 function saveJudgeAndContinue() {
   const j = document.getElementById("judgeName");
@@ -351,6 +410,29 @@ function newShowHome() {
   showOnly("introScreen");
   lockScroll(true);
 }
+let ADMIN_FLOW = false;
+
+function startAdmin() {
+  ADMIN_FLOW = true;
+
+  // Ask for passcode (same one you already use)
+  const pass = prompt("Admin passcode:");
+  if (!pass) return;
+
+  if (pass.trim().toUpperCase() !== ADMIN_PASSCODE.trim().toUpperCase()) {
+    alert("Wrong passcode.");
+    return;
+  }
+
+  setMode("admin");
+  showOnly("showScreen");
+
+  // prefill show if saved
+  const savedShow = localStorage.getItem("currentShow") || "";
+  const sel = document.getElementById("showSelect");
+  if (sel && savedShow) sel.value = savedShow;
+}
+
 
 // ===================== SCORING UX (stop jumping to Bird ID) =====================
 function blurBirdId() {
@@ -649,6 +731,8 @@ function showResults() {
   });
 
   resultsDiv.innerHTML = html;
+    applyModeVisibility();
+
   showOnly("resultsScreen");
 }
 
