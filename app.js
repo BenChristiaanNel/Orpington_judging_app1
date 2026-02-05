@@ -1039,3 +1039,35 @@ function exportAllOnline() {
   window.open(url, "_blank");
 }
 
+/* =========================
+   HOME MODE BUTTON FIX
+========================= */
+
+function startJudgeMode(){
+  startApp();   // reuse your existing working function
+}
+
+function openAdmin(){
+  // go straight to results/admin screen
+  hideAllScreens();
+  document.getElementById("resultsScreen").style.display = "block";
+}
+
+function hideAllScreens(){
+  const screens = [
+    "introScreen",
+    "showScreen",
+    "judgeScreen",
+    "classScreen",
+    "colourScreen",
+    "judgingScreen",
+    "resultsScreen",
+    "bestClassPage",
+    "bestVarietyPage",
+    "bestBreedPage"
+  ];
+  screens.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+}
