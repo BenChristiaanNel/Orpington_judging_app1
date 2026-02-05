@@ -740,6 +740,11 @@ label[for="dqToggle"],
       style="max-width:72%; border-radius:18px; margin:18px 0 26px; box-shadow:0 10px 25px rgba(0,0,0,0.4);" />
 
     <button class="btn-yellow" onclick="startApp()">Start Judging</button>
+
+<button class="btn-white" onclick="startAdmin()" style="margin-top:12px;">
+  Admin
+</button>
+
   </div>
 
   <!-- SHOW SCREEN -->
@@ -919,6 +924,7 @@ label[for="dqToggle"],
     <div class="card">
 
       <!-- ✅ Buttons in the order you requested -->
+    <div id="adminWinnersSection">
       <div class="section-title">Winners</div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
         <button type="button" onclick="openBestClassPage()"
@@ -936,7 +942,9 @@ label[for="dqToggle"],
           BEST IN BREED
         </button>
       </div>
+    </div>
 
+    <div id="adminExportSection">
       <div class="section-title">Export final results</div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
         <button type="button" onclick="exportWinnersOnline()"
@@ -949,18 +957,20 @@ label[for="dqToggle"],
           ALL SHOW RESULTS
         </button>
       </div>
+    </div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-        <button type="button" onclick="backToJudgingFromResults()"
-          style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
-          ← Back to Judging
-        </button>
+  <button id="backToJudgingBtn" type="button" onclick="backToJudgingFromResults()"
+    style="padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font-weight:800; cursor:pointer;">
+    ← Back to Judging
+  </button>
 
-        <button type="button" onclick="newShowHome()"
-          style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
-          New Show (Home)
-        </button>
-      </div>
+  <button type="button" onclick="newShowHome()"
+    style="padding:12px 14px; border-radius:12px; background:#dc2626; color:white; border:none; font-weight:900; cursor:pointer;">
+    New Show (Home)
+  </button>
+</div>
+
 
       <div id="resultsPageContent"></div>
     </div>
