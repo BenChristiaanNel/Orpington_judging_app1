@@ -1071,3 +1071,25 @@ function hideAllScreens(){
     if (el) el.style.display = "none";
   });
 }
+// ✅ Force functions to be callable by onclick="..."
+window.startJudgeMode = window.startJudgeMode || function () {
+  if (typeof startApp === "function") startApp();
+};
+
+window.openAdmin = window.openAdmin || function () {
+  if (typeof showOnly === "function") {
+    showOnly("resultsScreen");
+    lockScroll(false);
+    return;
+  }
+
+  // fallback if showOnly doesn't exist
+  const ids = [
+    "introScreen","showScreen","judgeScreen","classScreen","colourScreen",
+    "judgingScreen","resultsScreen","bestClassPage","bestVarietyPage","bestBreedPage"
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (id === "resultsScreen") ? "block" : "none";
+  });
+};
