@@ -4,6 +4,7 @@ const ADMIN_PASSCODE = "AVIOMED2026".trim(); // MUST match EXPECTED_PASSCODE in 
 
 // ===================== MODE: JUDGE vs ADMIN =====================
 const MODE_KEY = "appMode"; // "judge" | "admin"
+let ADMIN_FLOW = false;     // ✅ IMPORTANT: must be defined before used
 
 function setMode(mode) {
   localStorage.setItem(MODE_KEY, mode);
@@ -38,7 +39,6 @@ function applyModeVisibility() {
   }
 }
 
-
 // ===================== SCREEN CONTROL =====================
 function lockScroll(locked) {
   document.body.style.overflow = locked ? "hidden" : "auto";
@@ -55,24 +55,40 @@ function showOnly(screenId) {
     const el = document.getElementById(id);
     if (!el) return;
 
-    const isMainScroll = (id === "judgingScreen" || id === "resultsScreen" || id === "bestClassPage" || id === "bestVarietyPage" || id === "bestBreedPage");
+    const isMainScroll = (
+      id === "judgingScreen" ||
+      id === "resultsScreen" ||
+      id === "bestClassPage" ||
+      id === "bestVarietyPage" ||
+      id === "bestBreedPage"
+    );
+
     el.style.display = (id === screenId) ? (isMainScroll ? "block" : "flex") : "none";
   });
 
-  lockScroll(!(screenId === "judgingScreen" || screenId === "resultsScreen" || screenId === "bestClassPage" || screenId === "bestVarietyPage" || screenId === "bestBreedPage"));
+  lockScroll(!(
+    screenId === "judgingScreen" ||
+    screenId === "resultsScreen" ||
+    screenId === "bestClassPage" ||
+    screenId === "bestVarietyPage" ||
+    screenId === "bestBreedPage"
+  ));
 }
 
 window.addEventListener("load", () => {
   showOnly("introScreen");
   lockScroll(true);
 
+  // default mode
+  if (!localStorage.getItem(MODE_KEY)) setMode("judge");
+
   if (navigator.onLine) {
-    try { syncPending(); } catch(e) {}
+    try { syncPending(); } catch (e) {}
   }
 });
 
 window.addEventListener("online", () => {
-  try { syncPending(); } catch(e) {}
+  try { syncPending(); } catch (e) {}
 });
 
 // ===================== DEVICE + SYNC QUEUE =====================
@@ -258,6 +274,8 @@ function populateDQReasons(colourKey) {
 }
 
 // ===================== FLOW =====================
+
+// Judge mode start (home button)
 function startApp() {
   ADMIN_FLOW = false;
   setMode("judge");
@@ -268,27 +286,49 @@ function startApp() {
   if (sel && savedShow) sel.value = savedShow;
 }
 
+// Admin mode start (home button)
+function startAdmin() {
+  ADMIN_FLOW = true;
+
+  const pass = prompt("Admin passcode:");
+  if (!pass) return;
+
+  if (pass.trim().toUpperCase() !== ADMIN_PASSCODE.trim().toUpperCase()) {
+    alert("Wrong passcode.");
+    return;
+  }
+
+  setMode("admin");
+  showOnly("showScreen");
+
+  const savedShow = localStorage.getItem("currentShow") || "";
+  const sel = document.getElementById("showSelect");
+  if (sel && savedShow) sel.value = savedShow;
+}
+
+// ✅ Wrappers (in case your HTML uses these names)
+function startJudgeMode() { startApp(); }
+function openAdmin() { startAdmin(); }
+
+// ✅ FIXED: admin logic must live INSIDE this function (not top-level!)
 function saveShowAndContinue() {
   const sel = document.getElementById("showSelect");
   const showName = (sel ? sel.value : "").trim();
   if (!showName) return alert("Please choose a show.");
 
   localStorage.setItem("currentShow", showName);
+
   const lbl = document.getElementById("showNameDisplay");
   if (lbl) lbl.textContent = showName;
 
-  showOnly("judgeScreen");
-
-  const savedJudge = localStorage.getItem("currentJudge") || "";
-  const j = document.getElementById("judgeName");
-  if (j) j.value = savedJudge;
-}
-
-  // ✅ If admin flow: go straight to Results screen (no judge/class needed)
+  // ✅ ADMIN: go straight to Results screen
   if (ADMIN_FLOW || isAdminMode()) {
-    document.getElementById("resultsShowName").textContent = showName || "-";
-    document.getElementById("resultsJudgeName").textContent = "ADMIN";
-    document.getElementById("resultsClassName").textContent = "ALL CLASSES";
+    const a = document.getElementById("resultsShowName");
+    const b = document.getElementById("resultsJudgeName");
+    const c = document.getElementById("resultsClassName");
+    if (a) a.textContent = showName || "-";
+    if (b) b.textContent = "ADMIN";
+    if (c) c.textContent = "ALL CLASSES";
 
     showOnly("resultsScreen");
     applyModeVisibility();
@@ -296,13 +336,20 @@ function saveShowAndContinue() {
     const resultsDiv = document.getElementById("resultsPageContent");
     if (resultsDiv) {
       resultsDiv.innerHTML = `
-        <p><strong>Admin Mode:</strong> Choose Winners pages or Export options above.</p>
+        <p><strong>Admin Mode:</strong> Use Winners buttons or Export buttons above.</p>
         <p style="opacity:0.85;">(Judging is hidden in admin mode.)</p>
       `;
     }
     return;
   }
 
+  // ✅ JUDGE: continue normal flow
+  showOnly("judgeScreen");
+
+  const savedJudge = localStorage.getItem("currentJudge") || "";
+  const j = document.getElementById("judgeName");
+  if (j) j.value = savedJudge;
+}
 
 function saveJudgeAndContinue() {
   const j = document.getElementById("judgeName");
@@ -407,32 +454,12 @@ function newShowHome() {
   localStorage.removeItem("currentClass");
   localStorage.removeItem("currentColour");
 
+  setMode("judge");
+  ADMIN_FLOW = false;
+
   showOnly("introScreen");
   lockScroll(true);
 }
-let ADMIN_FLOW = false;
-
-function startAdmin() {
-  ADMIN_FLOW = true;
-
-  // Ask for passcode (same one you already use)
-  const pass = prompt("Admin passcode:");
-  if (!pass) return;
-
-  if (pass.trim().toUpperCase() !== ADMIN_PASSCODE.trim().toUpperCase()) {
-    alert("Wrong passcode.");
-    return;
-  }
-
-  setMode("admin");
-  showOnly("showScreen");
-
-  // prefill show if saved
-  const savedShow = localStorage.getItem("currentShow") || "";
-  const sel = document.getElementById("showSelect");
-  if (sel && savedShow) sel.value = savedShow;
-}
-
 
 // ===================== SCORING UX (stop jumping to Bird ID) =====================
 function blurBirdId() {
@@ -675,6 +702,7 @@ function showResults() {
   if (birds.length === 0) {
     resultsDiv.innerHTML = "<p>No birds saved yet for this show/judge/class.</p>";
     showOnly("resultsScreen");
+    applyModeVisibility();
     return;
   }
 
@@ -731,9 +759,9 @@ function showResults() {
   });
 
   resultsDiv.innerHTML = html;
-    applyModeVisibility();
 
   showOnly("resultsScreen");
+  applyModeVisibility();
 }
 
 function exportCSV() {
@@ -795,7 +823,7 @@ function fetchJsonp(url, timeoutMs = 12000) {
     const script = document.createElement("script");
 
     const cleanup = () => {
-      try { delete window[cb]; } catch(e) {}
+      try { delete window[cb]; } catch (e) {}
       if (script && script.parentNode) script.parentNode.removeChild(script);
     };
 
@@ -838,6 +866,7 @@ async function fetchOnlineLeaderboardOrThrow() {
 
 function backToResultsFromBestPages() {
   showOnly("resultsScreen");
+  applyModeVisibility();
 }
 
 // Best in Class (Top 5 per class+colour)
@@ -909,7 +938,6 @@ async function openBestVarietyPage() {
       const entries = block.entries ?? 0;
       const top3 = block.top3 || [];
 
-      // One card per variety with top3 inside
       html += `
         <div class="winner-card" style="background:#ffffff;">
           <div class="winner-title">🎨 ${escapeHtml(col)} <span style="opacity:0.6; font-size:14px;">(Entries: ${entries})</span></div>
@@ -936,7 +964,7 @@ async function openBestVarietyPage() {
   }
 }
 
-// Best in Breed (two cards, judge from SHEET per bird)
+// Best in Breed
 async function openBestInBreedPage() {
   const container = document.getElementById("bestBreedContent");
   if (container) container.innerHTML = "<p><em>Loading online results…</em></p>";
@@ -992,6 +1020,7 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
 // ============================================================
 // ✅ EXPORT BUTTONS (NO FETCH — opens URL to download CSV)
 // ============================================================
@@ -1017,7 +1046,6 @@ function exportWinnersOnline() {
     return;
   }
 
-  // Opens a CSV that Excel can open
   const url = buildExportUrl(showName, "export_winners");
   window.open(url, "_blank");
 }
@@ -1034,62 +1062,34 @@ function exportAllOnline() {
     return;
   }
 
-  // Exports ALL rows for the show (without timestamp/device_id/entry_key)
   const url = buildExportUrl(showName, "export_all");
   window.open(url, "_blank");
 }
 
-/* =========================
-   HOME MODE BUTTON FIX
-========================= */
-
-function startJudgeMode(){
-  startApp();   // reuse your existing working function
-}
-
-function openAdmin(){
-  // go straight to results/admin screen
-  hideAllScreens();
-  document.getElementById("resultsScreen").style.display = "block";
-}
-
-function hideAllScreens(){
-  const screens = [
-    "introScreen",
-    "showScreen",
-    "judgeScreen",
-    "classScreen",
-    "colourScreen",
-    "judgingScreen",
-    "resultsScreen",
-    "bestClassPage",
-    "bestVarietyPage",
-    "bestBreedPage"
-  ];
-  screens.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = "none";
-  });
-}
-// ✅ Force functions to be callable by onclick="..."
-window.startJudgeMode = window.startJudgeMode || function () {
-  if (typeof startApp === "function") startApp();
-};
-
-window.openAdmin = window.openAdmin || function () {
-  if (typeof showOnly === "function") {
-    showOnly("resultsScreen");
-    lockScroll(false);
-    return;
-  }
-
-  // fallback if showOnly doesn't exist
-  const ids = [
-    "introScreen","showScreen","judgeScreen","classScreen","colourScreen",
-    "judgingScreen","resultsScreen","bestClassPage","bestVarietyPage","bestBreedPage"
-  ];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = (id === "resultsScreen") ? "block" : "none";
-  });
-};
+// ✅ Ensure onclick="..." can always find these
+window.startApp = startApp;
+window.startAdmin = startAdmin;
+window.startJudgeMode = startJudgeMode;
+window.openAdmin = openAdmin;
+window.saveShowAndContinue = saveShowAndContinue;
+window.saveJudgeAndContinue = saveJudgeAndContinue;
+window.selectClass = selectClass;
+window.saveClassAndContinue = saveClassAndContinue;
+window.selectColour = selectColour;
+window.saveColourAndContinue = saveColourAndContinue;
+window.backToClass = backToClass;
+window.backToColour = backToColour;
+window.backToJudgingFromResults = backToJudgingFromResults;
+window.newShowHome = newShowHome;
+window.toggleDQ = toggleDQ;
+window.quickDQ = quickDQ;
+window.saveBird = saveBird;
+window.showResults = showResults;
+window.syncNow = syncNow;
+window.openBestClassPage = openBestClassPage;
+window.openBestVarietyPage = openBestVarietyPage;
+window.openBestInBreedPage = openBestInBreedPage;
+window.backToResultsFromBestPages = backToResultsFromBestPages;
+window.exportWinnersOnline = exportWinnersOnline;
+window.exportAllOnline = exportAllOnline;
+window.exportCSV = exportCSV;
