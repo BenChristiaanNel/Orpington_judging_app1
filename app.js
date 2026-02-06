@@ -1,5 +1,5 @@
 // ===================== ADMIN SYNC SETTINGS =====================
-const ADMIN_URL = "https://script.google.com/macros/s/AKfycbyosFuaJ865q9Jy4qeVwo00MTC5XMsS_reV9MRnS-6G4fgct1AByOq6XlCPZwcXYFLa/exec";
+const ADMIN_URL = "https://script.google.com/macros/s/AKfycbyPRrsHwHkzmWdhotjh8L7bi9rszqsF-HxTlVSLolXWOKEXDZDrgGDV-YffURDGzstn/exec";
 const ADMIN_PASSCODE = "AVIOMED2026".trim(); // MUST match EXPECTED_PASSCODE in Code.gs
 
 // ===================== MODE: JUDGE vs ADMIN =====================
